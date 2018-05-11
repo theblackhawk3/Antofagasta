@@ -1,4 +1,5 @@
 #### Main Code ###
+## Modification ##
 A = Projet(input("Veuillez Saisir le nom de votre projet : "))
 A.IdentifierActivitesPossibles()
 A.showListeActivites()
