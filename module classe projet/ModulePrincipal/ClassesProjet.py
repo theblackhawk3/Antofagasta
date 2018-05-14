@@ -19,21 +19,26 @@ def excel_dfs(Dict, file_name, spaces):
                  'Cout':Font(name='Calibri',size=11,bold=True,italic=True),
                  'Titre':Font(name='Calibri',size=11,italic=True)}
     indexColAct = 0
+    
     WordRowCol = []
     writer = pd.ExcelWriter(file_name,engine='xlsxwriter')
-    sheet = 'Int couts'
-    indexAct = 0
-    for activite in Dict['Int couts'].keys():
-        indexAct+=(max([a[1] for a in A.getDictParams()['Int couts'][activite].values()])//2) + 2
-        row = 5
-        WordRowCol.append((activite,row-4,indexAct+2,fontsDict['Activite']))
-        for cout in Dict['Int couts'][activite].keys():
-            WordRowCol.append((cout,row-2,indexAct,fontsDict['Cout']))
-            for dataframe in Dict['Int couts'][activite][cout][0]:
-                WordRowCol.append((dataframe[1],row+1,indexAct+1,fontsDict['Titre']))
-                dataframe[0].to_excel(writer,sheet_name=sheet,startrow=row , startcol=indexAct)   
-                row = row + len(dataframe[0].index) + spaces + 1
+    sheets = ['Int couts','Mar couts']
+    #Début ecriture données
+    for sheet in sheets:
+        indexAct = 0
+        for activite in Dict[sheet].keys():
+            indexAct+=(max([a[1] for a in A.getDictParams()[sheet][activite].values()])//2) + 2
+            row = 5
+            WordRowCol.append((activite,row-4,indexAct+2,fontsDict['Activite']))
+            for cout in Dict[sheet][activite].keys():
+                WordRowCol.append((cout,row-2,indexAct,fontsDict['Cout']))
+                for dataframe in Dict[sheet][activite][cout][0]:
+                    WordRowCol.append((dataframe[1],row+1,indexAct+1,fontsDict['Titre']))
+                    dataframe[0].to_excel(writer,sheet_name=sheet,startrow=row , startcol=indexAct)   
+                    row = row + len(dataframe[0].index) + spaces + 1
     writer.save()
+    #Fin ecritre données
+    
     wb = load_workbook('Parametres.xlsx')
     wsIntC = wb['Int couts']
     for i in WordRowCol:
@@ -76,6 +81,7 @@ class Projet:
                 MaxCols = max([i.getTableauAffichage().shape[1] for i in cout.getListTableaux()])
                 # Attention au changement du titre
                 self.DictParams['Int couts'][activite.getNom()][cout.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in cout.getListTableaux()],MaxCols) 
+                self.DictParams['Mar couts'][activite.getNom()][cout.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in cout.getListTableauxMarche()],MaxCols)
         excel_dfs(self.DictParams,"Parametres.xlsx",4)
     def getDictParams(self):
         return self.DictParams
@@ -260,6 +266,7 @@ class Cout:
         self.Horizon = Horizon
         self.CoutCPC = CoutCPC
         self.listeTableaux = []
+        self.listeTableauxMarche = []
         self.SaisieStartCol = SaisieStartCol
     #Setters
     def setNom(self, Nom):
@@ -270,6 +277,8 @@ class Cout:
         self.CoutCPC = CoutCPC
     def setSaisieStartCol(self,SaisieStartCol):
         self.SaisieStartCol = SaisieStartCol
+    def setListTableauxMarche(self,listeTableauxMarche):
+        self.listeTableauxMarche = listeTableauxMarche
     
     #Getters
     def getNom(self):
@@ -282,12 +291,13 @@ class Cout:
         return self.listeTableaux
     def getSaisieStartCol(self):
         return self.SaisieStartCol
+    def getListTableauxMarche(self):
+        return self.listeTableauxMarche
     
     def SaisieIntrinseque(self):
         #Au préalable necessite le nom du cout, l'horizon, SaisieStartCol
         wb = load_workbook("References.xlsx")
         ws=wb['Cout x Tableau']
-        ws
         for col in ws.iter_cols(min_row=2,min_col=3, max_col=34, max_row=2):
             for cell in col:
                 if (cell.value == self.Nom):
@@ -331,7 +341,38 @@ class Cout:
             row += ecartrow+4
         wb.save('Parametres.xlsx')'''
     def SaisieMarche(self):
-        pass
+        wb = load_workbook("References.xlsx")
+        ws=wb['Cout x Tableau']
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=34, max_row=2):
+            for cell in col:
+                if (cell.value == self.Nom):
+                    coltosearch = cell.col_idx
+        #Liste temporaire occupant les titres des Tableaux de saisie
+        Titres = []
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=23):
+            for cell in row:
+                if cell.value == 'x':
+                    if ws['B'+str(cell.row)].value == 'ext':
+                        Titres.append(ws['A'+str(cell.row)].value)
+        wsTableau = wb['Tableau x Features']
+        for j in Titres:
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=22, max_row=2):
+                for cell in col:
+                    if (cell.value == j):
+                        Taille = [0,0]
+                        IntituleLigne = wsTableau[cell.column+'3'].value
+                        TypeCol = wsTableau[cell.column+'4'].value
+                        IntituleColonne = wsTableau[cell.column+'5'].value
+                        #Un Test sur le type d'indices ligne pour le tableau
+                        if IntituleLigne == 'Horizon':
+                            Taille[0] = self.Horizon
+                        else:
+                            Taille[0] = int(input("Veuillez saisir votre "+IntituleLigne))
+                        if TypeCol == 1:
+                            Taille[1] = 1
+                        else:
+                            Taille[1] = int(input("Veuillez saisir votre "+str(TypeCol)))
+                        self.listeTableauxMarche.append(TableauSaisie(j,IntituleLigne,IntituleColonne,Taille))
     def CalculCout(self):
         pass
 

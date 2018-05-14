@@ -11,4 +11,13 @@ for activite in A.getListeActivites():
         cout.setHorizon(5)
         cout.setSaisieStartCol(compteur)
         cout.SaisieIntrinseque()
+        cout.SaisieMarche()
 A.PrepareExcelInput()  
+
+for activite in A.getListeActivites():
+    for cout in activite.getlistCout():
+        L=cout.getListTableauxMarche()
+        print(cout.getNom())
+        for i in L:
+            print(i.getTitre())
+            print(i.getTableauAffichage())
