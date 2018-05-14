@@ -1,6 +1,6 @@
 #### Main Code ###
 ## Modification ##
-### PC Walid modification ##
+##Adam Pc Modification##
 A = Projet(input("Veuillez Saisir le nom de votre projet : "))
 A.IdentifierActivitesPossibles()
 A.showListeActivites()
@@ -11,4 +11,4 @@ for activite in A.getListeActivites():
         cout.setHorizon(5)
         cout.setSaisieStartCol(compteur)
         cout.SaisieIntrinseque()
-A.PrepareExcelInput()        
+A.PrepareExcelInput()  
