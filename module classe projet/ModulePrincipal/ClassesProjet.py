@@ -19,42 +19,43 @@ def excel_dfs(Dict, file_name, spaces):
                  'Cout':Font(name='Calibri',size=11,bold=True,italic=True),
                  'Titre':Font(name='Calibri',size=11,italic=True)}
     indexColAct = 0
-    
-    WordRowCol = []
+    WordRowCol = {}
     writer = pd.ExcelWriter(file_name,engine='xlsxwriter')
     sheets = ['Int couts','Mar couts']
     #Début ecriture données
     for sheet in sheets:
         indexAct = 0
+        WordRowCol[sheet] = []
         for activite in Dict[sheet].keys():
             indexAct+=(max([a[1] for a in A.getDictParams()[sheet][activite].values()])//2) + 2
             row = 5
-            WordRowCol.append((activite,row-4,indexAct+2,fontsDict['Activite']))
+            WordRowCol[sheet].append((activite,row-4,indexAct+2,fontsDict['Activite']))
             for cout in Dict[sheet][activite].keys():
-                WordRowCol.append((cout,row-2,indexAct,fontsDict['Cout']))
-                for dataframe in Dict[sheet][activite][cout][0]:
-                    WordRowCol.append((dataframe[1],row+1,indexAct+1,fontsDict['Titre']))
-                    dataframe[0].to_excel(writer,sheet_name=sheet,startrow=row , startcol=indexAct)   
-                    row = row + len(dataframe[0].index) + spaces + 1
+                if Dict[sheet][activite][cout][0] != []:
+                    WordRowCol[sheet].append((cout,row-2,indexAct,fontsDict['Cout']))
+                    for dataframe in Dict[sheet][activite][cout][0]:
+                        WordRowCol[sheet].append((dataframe[1],row+1,indexAct+1,fontsDict['Titre']))
+                        dataframe[0].to_excel(writer,sheet_name=sheet,startrow=row , startcol=indexAct)   
+                        row = row + len(dataframe[0].index) + spaces + 1
     writer.save()
     #Fin ecritre données
-    
     wb = load_workbook('Parametres.xlsx')
-    wsIntC = wb['Int couts']
-    for i in WordRowCol:
-        wsIntC.cell(i[1],i[2]).value = i[0]
-        wsIntC.cell(i[1],i[2]).font = i[3]
-    for col in wsIntC.columns:
-        max_length = 0
-        column = col[0].column # Get the column name
-        for cell in col:
-            try: # Necessary to avoid error on empty cells
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
-            except:
-                pass
-        adjusted_width = (max_length + 2) * 1.2
-        wsIntC.column_dimensions[column].width = adjusted_width
+    for sheet in WordRowCol.keys():
+        ws = wb[sheet]
+        for i in WordRowCol[sheet]:
+            ws.cell(i[1],i[2]).value = i[0]
+            ws.cell(i[1],i[2]).font = i[3]
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column # Get the column name
+            for cell in col:
+                try: # Necessary to avoid error on empty cells
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                except:
+                    pass
+            adjusted_width = (max_length + 2) * 1.2
+            ws.column_dimensions[column].width = adjusted_width
     wb.save('Parametres.xlsx')
             
 
