@@ -1,6 +1,4 @@
 #### Main Code ###
-## Modification ##
-##Heeeehooo##
 A = Projet(input("Veuillez Saisir le nom de votre projet : "))
 A.IdentifierActivitesPossibles()
 A.showListeActivites()
@@ -21,3 +19,9 @@ for activite in A.getListeActivites():
         for i in L:
             print(i.getTitre())
             print(i.getTableauAffichage())
+Activity = A.getListeActivites()[0]
+
+for activite in A.ListeActivites:
+    for cout in activite.getlistCout():
+        for Tableau in cout.getListTableauxMarche():
+            print(Tableau.getTableauAffichage())

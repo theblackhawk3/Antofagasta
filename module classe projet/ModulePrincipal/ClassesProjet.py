@@ -20,21 +20,26 @@ def excel_dfs(Dict, file_name, spaces):
                  'Titre':Font(name='Calibri',size=11,italic=True)}
     indexColAct = 0
     WordRowCol = {}
+    DictRecolte = {}
     writer = pd.ExcelWriter(file_name,engine='xlsxwriter')
     sheets = ['Int couts','Mar couts']
     #Début ecriture données
     for sheet in sheets:
         indexAct = 0
         WordRowCol[sheet] = []
+        DictRecolte[sheet] = {}
         for activite in Dict[sheet].keys():
             indexAct+=(max([a[1] for a in A.getDictParams()[sheet][activite].values()])//2) + 2
             row = 5
             WordRowCol[sheet].append((activite,row-4,indexAct+2,fontsDict['Activite']))
+            DictRecolte[sheet][activite] = {}
             for cout in Dict[sheet][activite].keys():
                 if Dict[sheet][activite][cout][0] != []:
                     WordRowCol[sheet].append((cout,row-2,indexAct,fontsDict['Cout']))
+                    DictRecolte[sheet][activite][cout] = {}
                     for dataframe in Dict[sheet][activite][cout][0]:
                         WordRowCol[sheet].append((dataframe[1],row+1,indexAct+1,fontsDict['Titre']))
+                        DictRecolte[sheet][activite][cout][dataframe[1]] = [row+1,indexAct+1]
                         dataframe[0].to_excel(writer,sheet_name=sheet,startrow=row , startcol=indexAct)   
                         row = row + len(dataframe[0].index) + spaces + 1
     writer.save()
@@ -57,6 +62,7 @@ def excel_dfs(Dict, file_name, spaces):
             adjusted_width = (max_length + 2) * 1.2
             ws.column_dimensions[column].width = adjusted_width
     wb.save('Parametres.xlsx')
+    return WordRowCol,DictRecolte
             
 
     
@@ -73,6 +79,9 @@ class Projet:
                            "Mar couts":{},
                            "Int revenus":{},
                            "Mar revenus":{}}
+        self.WordRowCol = {}
+        self.DictRecolte = {"Int couts":{},
+                           "Mar couts":{}}
                            
     def PrepareExcelInput(self):
         for activite in self.ListeActivites:
@@ -83,12 +92,23 @@ class Projet:
                 # Attention au changement du titre
                 self.DictParams['Int couts'][activite.getNom()][cout.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in cout.getListTableaux()],MaxCols) 
                 self.DictParams['Mar couts'][activite.getNom()][cout.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in cout.getListTableauxMarche()],MaxCols)
-        excel_dfs(self.DictParams,"Parametres.xlsx",4)
-    def getDictParams(self):
-        return self.DictParams
+        self.WordRowCol,self.DictRecolte = excel_dfs(self.DictParams,"Parametres.xlsx",4)
     
-    def setDictParams(self,Dict):
-        self.DictParams = Dict
+    def GetExcelInput(self):
+        wb = load_workbook('Parametres.xlsx')
+        wsIC = wb['Int couts']
+        wsMC = wb['Mar couts']
+        for activite in self.ListeActivites:
+            for cout in activite.getlistCout():
+                for Tableau in cout.getListTableaux():
+                    CornerRow = self.DictRecolte['Int couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][0]+1
+                    CornerColumn = self.DictRecolte['Int couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][1]+1
+                    Tableau.setTableauDonnees(np.array([[wsIC.cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
+                for Tableau in cout.getListTableauxMarche():
+                    CornerRow = self.DictRecolte['Mar couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][0]+1
+                    CornerColumn = self.DictRecolte['Mar couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][1]+1
+                    Tableau.setTableauDonnees(np.array([[wsMC.cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
+
     
     #Méthode pour enregistrer tout les tableaux
         
@@ -126,6 +146,8 @@ class Projet:
         self.ListeActivites = ListeActivites
     def setHorizon(self,Horizon):
         self.Horizon = Horizon
+    def setDictParams(self,Dict):
+        self.DictParams = Dict
 
     #Getters
     def getNom(self):
@@ -139,6 +161,8 @@ class Projet:
             print(i.getNom())
     def getHorizon(self):
         return self.Horizon
+    def getDictParams(self):
+        return self.DictParams
     
 class TableauSaisie:
     def __init__(self,Titre="",IntituleLigne="",IntituleColonne="",Taille = [1,1]):
@@ -165,8 +189,8 @@ class TableauSaisie:
     def setTableauDonnees(self,TableauDonnees):
         self.TableauDonnees = TableauDonnees
         self.TableauAffichage = pd.DataFrame(self.TableauDonnees)
-        self.TableauAffichage.columns = [self.IntituleColonne+'='+str(i) for i in range(Taille[1])]
-        self.TableauAffichage.index = [self.IntituleLigne+'='+str(i) for i in range(Taille[0])]
+        self.TableauAffichage.columns = [self.IntituleColonne+'='+str(i) for i in range(self.Taille[1])]
+        self.TableauAffichage.index = [self.IntituleLigne+'='+str(i) for i in range(self.Taille[0])]
     
     #Getters
     def getTitre(self):
