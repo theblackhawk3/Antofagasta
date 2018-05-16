@@ -354,17 +354,7 @@ class Cout:
                             Taille[1] = int(input("Veuillez saisir votre "+str(TypeCol)))
                         self.listeTableaux.append(TableauSaisie(j,IntituleLigne,IntituleColonne,Taille))
         
-        #Ajouter les tableaux à Excel sans titres
-        '''export_dfs([T.getTableauAffichage() for T in self.getListTableaux()],'Int couts','Parametres.xlsx',3,self.SaisieStartCol-1)
-        wb=load_workbook('Parametres.xlsx')
-        ws=wb['Int couts']
-        ws.cell(1,self.SaisieStartCol+2).value = self.Nom
-        self.TaillesTableaux = [len(T.getTableauAffichage()) for T in self.getListTableaux()]
-        row = 4
-        for i,ecartrow in enumerate(self.TaillesTableaux):
-            ws.cell(row,self.SaisieStartCol).value = self.getListTableaux()[i].getTitre()
-            row += ecartrow+4
-        wb.save('Parametres.xlsx')'''
+
     def SaisieMarche(self):
         wb = load_workbook("References.xlsx")
         ws=wb['Cout x Tableau']
