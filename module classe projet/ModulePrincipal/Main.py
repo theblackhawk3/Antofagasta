@@ -1,4 +1,6 @@
 #### Main Code ###
+from FormulesCouts import *
+import numpy as np
 A = Projet(input("Veuillez Saisir le nom de votre projet : "))
 A.IdentifierActivitesPossibles()
 A.showListeActivites()
@@ -23,5 +25,6 @@ Activity = A.getListeActivites()[0]
 
 for activite in A.ListeActivites:
     for cout in activite.getlistCout():
-        for Tableau in cout.getListTableauxMarche():
-            print(Tableau.getTableauAffichage())
+        if cout.getNom() == "Cout de location, espace":
+            CalculerCout(cout)
+            print(cout.resultat)

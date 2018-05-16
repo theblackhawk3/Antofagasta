@@ -206,6 +206,7 @@ class TableauSaisie:
     def getTableauDonnees(self):
         return self.TableauDonnees  
     
+    
 class Activite:
     def __init__(self,nom = "",listRev=[],listCout=[]):
         self.nom      = nom
@@ -293,6 +294,8 @@ class Cout:
         self.listeTableaux = []
         self.listeTableauxMarche = []
         self.SaisieStartCol = SaisieStartCol
+        self.DictTableaux = {}
+        self.resultat = []
     #Setters
     def setNom(self, Nom):
         self.Nom = Nom
@@ -304,6 +307,8 @@ class Cout:
         self.SaisieStartCol = SaisieStartCol
     def setListTableauxMarche(self,listeTableauxMarche):
         self.listeTableauxMarche = listeTableauxMarche
+    def setResultat(self,resultat):
+        self.resultat = resultat
     
     #Getters
     def getNom(self):
@@ -388,6 +393,14 @@ class Cout:
                         else:
                             Taille[1] = int(input("Veuillez saisir votre "+str(TypeCol)))
                         self.listeTableauxMarche.append(TableauSaisie(j,IntituleLigne,IntituleColonne,Taille))
+                        
+    def getDicoTableaux(self):
+        for i in self.listeTableaux:
+            self.DictTableaux[i.getTitre()] = i.getTableauDonnees()
+        for i in self.listeTableauxMarche:
+            self.DictTableaux[i.getTitre()] = i.getTableauDonnees()
+        return self.DictTableaux
+        
     def CalculCout(self):
         pass
 
