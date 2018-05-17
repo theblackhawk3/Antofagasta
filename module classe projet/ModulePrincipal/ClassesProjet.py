@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 
-##modifffff
+
 
 def export_dfs(df_list, sheet, file_name, spaces,colstart=0):
     writer = pd.ExcelWriter(file_name,engine='xlsxwriter')
@@ -128,15 +128,38 @@ class Projet:
                     self.ListeActivites.append(A)
         
     def AjoutActivites(self,NewListeActiv):
-        self.ListeActivites += NewListeActiv 
+        self.ListeActivites += NewListeActiv
     
     def CommencerSaisie(self):
         pass
     
     def GenerateCPC(self):
-        #Programme de generation du cpc et retour Du CPC Final
-        pass
-        
+        wb = load_workbook('CPC.xlsx')
+        TotalCouts= [] # cette liste va contenir les listes resultats des couts afin de les somme par après 
+        ws=wb['CPC']
+        ws['A1'] = 'Couts'
+        PCPC = 2
+        for i in range(self.Horizon):
+            ws.cell(1,i+3).value = 't = '+str(i+1)
+        for activite in self.ListeActivites:
+            ws['A'+str(PCPC)].value = activite.getNom()
+            PCPC+=1
+            for cout in activite.getlistCout():
+                ws['B'+str(PCPC)].value = cout.getNom()
+                for index,result in enumerate(cout.resultat):
+                    ws.cell(PCPC,index+3).value = result
+                TotalCouts.append(cout.resultat)
+                PCPC += 1
+        ws['A'+str(PCPC)].value = 'Total des couts'
+        print("Avant")
+        print(TotalCouts)
+        TotalCouts = list(np.sum(np.array(TotalCouts),axis=0))
+        print("Après")
+        print(TotalCouts)
+        for index,total in enumerate(TotalCouts):
+            ws.cell(PCPC,index+3).value = total
+        wb.save('CPC.xlsx')
+
     #Setters 
     def setNom(self,Nom):
         self.Nom = Nom
@@ -402,6 +425,7 @@ class Cout:
         return self.DictTableaux
         
     def CalculCout(self):
+        CalculerCout(self)
         pass
 
 class Revenu:

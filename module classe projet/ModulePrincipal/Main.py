@@ -4,6 +4,7 @@ import numpy as np
 A = Projet(input("Veuillez Saisir le nom de votre projet : "))
 A.IdentifierActivitesPossibles()
 A.showListeActivites()
+A.setHorizon(5)
 compteur = 1
 for activite in A.getListeActivites():
     activite.IdentifierCouts()
@@ -14,17 +15,14 @@ for activite in A.getListeActivites():
         cout.SaisieMarche()
 A.PrepareExcelInput()  
 
-for activite in A.getListeActivites():
-    for cout in activite.getlistCout():
-        L=cout.getListTableauxMarche()
-        print(cout.getNom())
-        for i in L:
-            print(i.getTitre())
-            print(i.getTableauAffichage())
-Activity = A.getListeActivites()[0]
+#Remplir les données dans le fichier Excel et puis exécuter :
 
+A.GetExcelInput()
+
+#Executer le fichier Formulescouts avant de calculer les couts
 for activite in A.ListeActivites:
     for cout in activite.getlistCout():
-        if cout.getNom() == "Cout de location, espace":
-            CalculerCout(cout)
-            print(cout.resultat)
+            cout.CalculCout()
+
+#Generer le CPC Final
+A.GenerateCPC()
