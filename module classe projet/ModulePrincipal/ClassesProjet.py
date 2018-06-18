@@ -116,11 +116,11 @@ class Projet:
         print("Identification des Activités")
         wb = load_workbook('References.xlsx')
         ws = wb['Ref activite']
-        for col in ws.iter_cols(min_row=2,min_col=3, max_col=78, max_row=2):
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=ws.max_column, max_row=2):
             for cell in col:
                 if cell.value == self.getNom():
                     col_to_search = cell.col_idx
-        for row in ws.iter_rows(min_row=3,max_row=87,min_col=col_to_search,max_col=col_to_search):
+        for row in ws.iter_rows(min_row=3,max_row=ws.max_row,min_col=col_to_search,max_col=col_to_search):
             for cell in row:
                 if cell.value == 1:
                     A = Activite()
@@ -351,20 +351,20 @@ class Cout:
         #Au préalable necessite le nom du cout, l'horizon, SaisieStartCol
         wb = load_workbook("References.xlsx")
         ws=wb['Cout x Tableau']
-        for col in ws.iter_cols(min_row=2,min_col=3, max_col=34, max_row=2):
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=ws.max_column, max_row=2):
             for cell in col:
                 if (cell.value == self.Nom):
                     coltosearch = cell.col_idx
         #Liste temporaire occupant les titres des Tableaux de saisie
         Titres = []
-        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=23):
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=ws.max_row):
             for cell in row:
                 if cell.value == 'x':
                     if ws['B'+str(cell.row)].value == 'int':
                         Titres.append(ws['A'+str(cell.row)].value)
         wsTableau = wb['Tableau x Features']
         for j in Titres:
-            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=22, max_row=2):
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=ws.max_column, max_row=2):
                 for cell in col:
                     if (cell.value == j):
                         Taille = [0,0]
@@ -386,20 +386,20 @@ class Cout:
     def SaisieMarche(self):
         wb = load_workbook("References.xlsx")
         ws=wb['Cout x Tableau']
-        for col in ws.iter_cols(min_row=2,min_col=3, max_col=34, max_row=2):
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=ws.max_column, max_row=2):
             for cell in col:
                 if (cell.value == self.Nom):
                     coltosearch = cell.col_idx
         #Liste temporaire occupant les titres des Tableaux de saisie
         Titres = []
-        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=23):
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=ws.max_row):
             for cell in row:
                 if cell.value == 'x':
                     if ws['B'+str(cell.row)].value == 'ext':
                         Titres.append(ws['A'+str(cell.row)].value)
         wsTableau = wb['Tableau x Features']
         for j in Titres:
-            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=22, max_row=2):
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=ws.max_column, max_row=2):
                 for cell in col:
                     if (cell.value == j):
                         Taille = [0,0]
