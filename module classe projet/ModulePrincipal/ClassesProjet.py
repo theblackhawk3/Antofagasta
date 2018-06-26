@@ -71,6 +71,7 @@ class Projet:
     
     def __init__(self,Nom="",Localisation="",ListeActivites=[],Horizon=0,CPC=[]):
         self.Nom = Nom
+        self.ListeActivitesSecondaires = []
         self.Localisation = Localisation
         self.ListeActivites = ListeActivites
         self.Horizon = Horizon
@@ -113,6 +114,7 @@ class Projet:
     #Méthode pour enregistrer tout les tableaux
         
     def IdentifierActivitesPossibles(self):
+        self.ListeActivites,self.ListeActivitesSecondaires = [],[]
         print("Identification des Activités")
         wb = load_workbook('References.xlsx')
         ws = wb['Ref activite']
@@ -126,6 +128,11 @@ class Projet:
                     A = Activite()
                     A.setNom(ws['C'+str(cell.row)].value)
                     self.ListeActivites.append(A)
+                elif cell.value == 2:
+                    A = Activite()
+                    A.setNom(ws['C'+str(cell.row)].value)
+                    self.ListeActivitesSecondaires.append(A)
+                    
         
     def AjoutActivites(self,NewListeActiv):
         self.ListeActivites += NewListeActiv
@@ -186,6 +193,8 @@ class Projet:
         return self.Horizon
     def getDictParams(self):
         return self.DictParams
+    def getListeActivitesSecondaires(self):
+        return self.ListeActivitesSecondaires
     
 class TableauSaisie:
     def __init__(self,Titre="",IntituleLigne="",IntituleColonne="",Taille = [1,1]):
