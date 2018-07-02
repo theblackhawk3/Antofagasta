@@ -265,6 +265,7 @@ class Activite:
             print(i.getNom())
     
     def IdentifierCouts(self):
+        self.listCout = []
         print("Identification des Couts")
         wb = load_workbook('References.xlsx')
         ws = wb['Ref couts']
