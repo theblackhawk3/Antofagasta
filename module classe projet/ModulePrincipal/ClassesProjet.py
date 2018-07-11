@@ -93,7 +93,12 @@ class Projet:
                 # Attention au changement du titre
                 self.DictParams['Int couts'][activite.getNom()][cout.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in cout.getListTableaux()],MaxCols) 
                 self.DictParams['Mar couts'][activite.getNom()][cout.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in cout.getListTableauxMarche()],MaxCols)
-        self.WordRowCol,self.DictRecolte = excel_dfs(self.DictParams,"Parametres.xlsx",4)
+        #self.WordRowCol,self.DictRecolte = excel_dfs(self.DictParams,"Parametres.xlsx",4) VERSION n-1
+            
+            for revenu in activite.getlistRev():
+                MaxColsRev =  max([i.getTableauAffichage().shape[1] for i in revenu.getListTableaux()])
+                self.DictParams['Int revenus'][activite.getNom()][revenu.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in revenu.getListTableaux()],MaxColsRev)
+                self.DictParams['Mar revenus'][activite.getNom()][revenu.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in revenu.getListTableauxMarche()],MaxColsRev)
     
     def GetExcelInput(self):
         wb = load_workbook('Parametres.xlsx')
@@ -281,6 +286,7 @@ class Activite:
                     
     
     def IdentifierRevenus(self):
+        self.listRev = []
         print("Identification des Revenus")
         wb = load_workbook('References.xlsx')
         ws = wb['Ref revenus']
@@ -439,19 +445,36 @@ class Cout:
         pass
 
 class Revenu:
-    def __init__(self, Nom="",Horizon=0,RevenuCPC=[]):
-        self.Nom = Nom
+    def __init__(self,Nom = "", Horizon=0,SaisieStartCol = 1,CoutCPC = []):
+        self.Nom     = Nom
         self.Horizon = Horizon
-        self.RevenuCPC = RevenuCPC
-        
+        self.RevenuCPC = CoutCPC
+        self.listeTableaux = []
+        self.listeTableauxMarche = []
+        self.SaisieStartCol = SaisieStartCol
+        self.DictTableaux = {}
+        self.resultat = []
+        self.Produits = {}
+        self.isOnce = False
+        self.step = ''
+        self.VEchantillon = []
+        self.DicoFormes = {}
+        self.DicoFormesMarche = {}
     #Setters
     def setNom(self, Nom):
         self.Nom = Nom
     def setHorizon(self,Horizon):
         self.Horizon = Horizon
-    def setRevenuCPC(self,RevenuCPC):
-        self.RevenuCPC = RevenuCPC
-    
+    def setRevenuCPC(self,CoutCPC):
+        self.RevenuCPC = CoutCPC
+    def setSaisieStartCol(self,SaisieStartCol):
+        self.SaisieStartCol = SaisieStartCol
+    def setListTableauxMarche(self,listeTableauxMarche):
+        self.listeTableauxMarche = listeTableauxMarche
+    def setResultat(self,resultat):
+        self.resultat = resultat
+    def DicoTableaux(Self) :
+        self.DicoTableaux = {}
     #Getters
     def getNom(self):
         return self.Nom
@@ -459,10 +482,186 @@ class Revenu:
         return self.Horizon
     def getRevenuCPC(self):
         return self.RevenuCPC
+    def getListTableaux(self):
+        return self.listeTableaux
+    def getSaisieStartCol(self):
+        return self.SaisieStartCol
+    def getListTableauxMarche(self):
+        return self.listeTableauxMarche
     
-    def SaisieIntrinseque():
-        pass
-    def SaisieMarche():
-        pass
-    def CalculRevenu():
+    def SaisieIntrinseque(self):
+        #Au préalable necessite le nom du cout, l'horizon, SaisieStartCol
+        wb = load_workbook("References.xlsx")
+        ws=wb['Rev x Tableau']
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=12, max_row=2):
+            for cell in col:
+                if (cell.value == self.Nom):
+                    coltosearch = cell.col_idx
+        #Liste temporaire occupant les titres des Tableaux de saisie
+        Titres = []
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=24):
+            for cell in row:
+                if cell.value == "x" :
+                    if ws['B'+str(cell.row)].value == 'int':
+                        Titres.append(ws['A'+str(cell.row)].value)
+                        print(Titres)
+        wsTableau = wb['Tableau x Features rev'] #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        for j in Titres:
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=23, max_row=2):
+                for cell in col:
+                    if (cell.value == j):
+                        Taille = [0,0]
+                        IntituleLigne = wsTableau[cell.column+'3'].value
+                        TypeCol = wsTableau[cell.column+'4'].value
+                        IntituleColonne = wsTableau[cell.column+'5'].value
+                        #Un Test sur le type d'indices ligne pour le tableau
+                        if IntituleLigne == 'Horizon':
+                            Taille[0] = self.Horizon
+                        else:
+                            Taille[0] = int(input("Veuillez saisir votre "+IntituleLigne))
+                        if TypeCol == 1:
+                            Taille[1] = 1
+                        else:
+                            Taille[1] = int(input("Veuillez saisir votre "+str(TypeCol)))
+                        self.listeTableaux.append(TableauSaisie(j,IntituleLigne,IntituleColonne,Taille))
+
+    def SaisieIntrinseque_1(self):
+        #Au préalable necessite le nom du cout, l'horizon, SaisieStartCol
+        wb = load_workbook("References.xlsx")
+        ws=wb['Rev x Tableau']
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=12, max_row=2):
+            for cell in col:
+                if (cell.value == self.Nom):
+                    coltosearch = cell.col_idx
+        #Liste temporaire occupant les titres des Tableaux de saisie
+        Titres = []
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=24):
+            for cell in row:
+                if cell.value == "x" :
+                    if ws['B'+str(cell.row)].value == 'int':
+                        Titres.append(ws['A'+str(cell.row)].value)
+                        print(Titres)
+        wsTableau = wb['Tableau x Features rev'] #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        Formulaire = []
+        for j in Titres:
+            self.DicoFormes[j] ={}
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=23, max_row=2):
+                for cell in col:
+                    if (cell.value == j):
+                        Questions = [j]
+                        Taille = [0,0]
+                        self.DicoFormes[j]['Taille0'] = Taille[0]
+                        self.DicoFormes[j]['Taille1'] = Taille[1]
+                        IntituleLigne = wsTableau[cell.column+'3'].value
+                        self.DicoFormes[j]['IntituleLigne'] = IntituleLigne
+                        TypeCol = wsTableau[cell.column+'4'].value
+                        self.DicoFormes[j]['TypeCol'] = TypeCol
+                        IntituleColonne = wsTableau[cell.column+'5'].value
+                        self.DicoFormes[j]['IntituleColonne'] = IntituleColonne
+                        #Un Test sur le type d'indices ligne pour le tableau
+                        if IntituleLigne == 'Horizon':
+                            Taille[0] = self.Horizon
+                            self.DicoFormes[j]['Taille0'] = self.Horizon
+                        else:
+                            Questions.append(["Taille0","Veuillez saisir votre "+IntituleLigne])
+                        if TypeCol == 1:
+                            Taille[1] = 1
+                            self.DicoFormes[j]['Taille1'] = 1
+                        else:
+                            Questions.append(["Taille1","Veuillez saisir votre "+str(TypeCol)])
+                        Formulaire.append(Questions)
+        return Formulaire
+                        #self.listeTableaux.append(TableauSaisie(j,IntituleLigne,IntituleColonne,Taille))
+
+    def SaisieMarche(self):
+        wb = load_workbook("References.xlsx")
+        ws=wb['Rev x Tableau']
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=12, max_row=2):
+            for cell in col:
+                if (cell.value == self.Nom):
+                    coltosearch = cell.col_idx
+        #Liste temporaire occupant les titres des Tableaux de saisie
+        Titres = []
+        print(Titres)
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=24):
+            for cell in row:
+                if cell.value == 'x':
+                    if ws['B'+str(cell.row)].value == 'ext':
+                        Titres.append(ws['A'+str(cell.row)].value)
+                        print('ok')
+        wsTableau = wb['Tableau x Features rev']
+        for j in Titres:
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=23, max_row=2):
+                for cell in col:
+                    if (cell.value == j):
+                        Taille = [0,0]
+                        IntituleLigne = wsTableau[cell.column+'3'].value
+                        TypeCol = wsTableau[cell.column+'4'].value
+                        IntituleColonne = wsTableau[cell.column+'5'].value
+                        #Un Test sur le type d'indices ligne pour le tableau
+                        if IntituleLigne == 'Horizon':
+                            Taille[0] = self.Horizon
+                        else:
+                            Taille[0] = int(input("Veuillez saisir votre "+IntituleLigne))
+                        if TypeCol == 1 :
+                            Taille[1] = 1
+                        else:
+                            Taille[1] = int(input("Veuillez saisir votre "+str(TypeCol)))
+                        self.listeTableauxMarche.append(TableauSaisie(j,IntituleLigne,IntituleColonne,Taille))
+    def SaisieMarche_1(self):
+        wb = load_workbook("References.xlsx")
+        ws=wb['Rev x Tableau']
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=12, max_row=2):
+            for cell in col:
+                if (cell.value == self.Nom):
+                    coltosearch = cell.col_idx
+        #Liste temporaire occupant les titres des Tableaux de saisie
+        Titres = []
+        print(Titres)
+        Formulaire = []
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=24):
+            for cell in row:
+                if cell.value == 'x':
+                    if ws['B'+str(cell.row)].value == 'ext':
+                        Titres.append(ws['A'+str(cell.row)].value)
+                        print('ok')
+        wsTableau = wb['Tableau x Features rev']
+        for j in Titres:
+            self.DicoFormesMarche[j] ={}
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=23, max_row=2):
+                for cell in col:
+                    if (cell.value == j):
+                        Questions = [j]
+                        Taille = [0,0]
+                        self.DicoFormesMarche[j]['Taille0'] = Taille[0]
+                        self.DicoFormesMarche[j]['Taille1'] = Taille[1]
+                        IntituleLigne = wsTableau[cell.column+'3'].value
+                        self.DicoFormesMarche[j]['IntituleLigne'] = IntituleLigne
+                        TypeCol = wsTableau[cell.column+'4'].value
+                        self.DicoFormesMarche[j]['TypeCol'] = TypeCol
+                        IntituleColonne = wsTableau[cell.column+'5'].value
+                        self.DicoFormesMarche[j]['IntituleColonne'] = IntituleColonne
+                        #Un Test sur le type d'indices ligne pour le tableau
+                        if IntituleLigne == 'Horizon':
+                            Taille[0] = self.Horizon
+                            self.DicoFormesMarche[j]['Taille0'] = self.Horizon
+                        else:
+                            Questions.append(["Taille0","Veuillez saisir votre "+IntituleLigne])
+                        if TypeCol == 1:
+                            Taille[1] = 1
+                            self.DicoFormesMarche[j]['Taille1'] = 1
+                        else:
+                            Questions.append(["Taille1","Veuillez saisir votre "+str(TypeCol)])
+                        Formulaire.append(Questions)
+        return Formulaire
+        
+    def getDicoTableaux(self):
+        for i in self.listeTableaux:
+            self.DicoTableaux[i.getTitre()] = i.getTableauDonnees()
+        for i in self.listeTableauxMarche:
+            self.DicoTableaux[i.getTitre()] = i.getTableauDonnees()
+        return self.DictTableaux
+        
+    def CalculRev(self):
+        CalculerCout(self)
         pass
