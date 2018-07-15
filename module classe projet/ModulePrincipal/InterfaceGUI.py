@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QApplication, QDialog,QWidget, QMessageBox,QTableWid
 from PyQt5.QtWidgets import *
 from ClassesProjet import *
 from FormulesCouts import *
+from FormulesRevenus import *
 
 def bind(objectName, propertyName, type):
     def getter(self):
@@ -104,7 +105,7 @@ class Ui_Form(QWidget):
         
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Antofagasta : Modélisation Standardisée des projets D\'investissement"))
+        Form.setWindowTitle(_translate("Form", "Outil Modélisation Standardisée des projets D\'investissement"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Form", "Plan d\'investissement"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Form", "Plan de financement"))
         self.pushButton.setText(_translate("Form", "Valider le choix"))
@@ -369,6 +370,7 @@ class Ui_Form_2(QWidget):
         self.pushButton_2.setText(_translate("Form", "Valider >"))
         self.label.setText(_translate("Form", "Récapitulatif phase Investissements"))
         self.pushButton.clicked.connect(go_to_page1)
+
         
     def initUI(self):
         self.pushButton_2.clicked.connect(go_to_page3)
@@ -424,7 +426,7 @@ class Ui_Form_3(object):
         self.listWidget.setObjectName("listWidget")
         self.verticalLayout.addWidget(self.listWidget)
         self.groupBox_2 = QtWidgets.QGroupBox(Form)
-        self.groupBox_2.setGeometry(QtCore.QRect(520, 200, 451, 280))
+        self.groupBox_2.setGeometry(QtCore.QRect(520, 200, 461, 491))
         self.groupBox_2.setObjectName("groupBox_2")
         self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.groupBox_2)
         self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(20, 40, 411, 201))
@@ -440,6 +442,15 @@ class Ui_Form_3(object):
         self.buttonDetails = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.buttonDetails.setObjectName("buttonDetails")
         self.buttonDetails.setText("Détails")
+        ##Modif
+        self.buttonDetails_2 = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
+        self.buttonDetails_2.setObjectName("buttonDetails_2")
+        self.buttonDetails_2.setText("Détails")
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.horizontalLayout_4.addWidget(self.buttonDetails_2)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_4)
+        ## Fin modif
         self.horizontalLayout_3.addWidget(self.buttonDetails)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.dateEdit = QtWidgets.QDateEdit(Form)
@@ -456,20 +467,30 @@ class Ui_Form_3(object):
         widget = QWidget()
         self.scrollarea.setWidget(widget)
         self.layout_SArea = QtWidgets.QVBoxLayout(widget)
-        # self.test_Label = QtWidgets.QLabel()
-        # self.test_Label.setText("Question 1")
-        # self.layout_SArea.addWidget(self.test_Label)
+        ## Modif
+        self.detailsSectionP_2 = QtWidgets.QGroupBox(self.groupBox_2)
+        self.detailsSectionP_2.setGeometry(QtCore.QRect(20,250,431,230))
+        self.detailsSectionP_2.setObjectName("detailsSectionP_2")   
+        self.detailsSectionP_2.setTitle("Informations détaillés sur la facturation")
+        self.scrollarea_2 = QtWidgets.QScrollArea(self.detailsSectionP_2)
+        self.scrollarea_2.setFixedWidth(431)
+        self.scrollarea_2.setFixedHeight(230)
+        self.scrollarea_2.setWidgetResizable(True)
+        widget_2 = QWidget()
+        self.scrollarea_2.setWidget(widget_2)
+        self.layout_SArea_2 = QtWidgets.QVBoxLayout(widget_2)
+        ##Fin Modif
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
         self.buttonNext = QPushButton(Form)
-        self.buttonNext.setGeometry(QtCore.QRect(360, 720, 121, 41))
+        self.buttonNext.setGeometry(QtCore.QRect(850, 680, 121, 41))
         self.buttonNext.setText("Suivant")
         self.buttonNext.clicked.connect(go_to_page4)
         self.initUI()
         
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Business Model"))
         self.label.setText(_translate("Form", "II - L\'exploitation"))
         self.label_2.setText(_translate("Form", "Quelle est la date de démarrage de votre exploitation ?"))
         self.label_3.setText(_translate("Form", "Business Model"))
@@ -478,6 +499,7 @@ class Ui_Form_3(object):
 
     def initUI(self):
         self.buttonDetails.clicked.connect(self.details_clicked)
+        self.buttonDetails_2.clicked.connect(self.details_clicked_2)
     def load_combo_pc(self):
         ListeProduits = []
         ListeCharges = []
@@ -513,9 +535,18 @@ class Ui_Form_3(object):
                     if activite.getNom() == RevenuWidget.parent().text(0):
                         Revenu = revenu
                         self.detailed_produit(Revenu)
+    def details_clicked_2(self):
+        CostWidget = self.listWidget_2.selectedItems()[0] 
+        ##### Revenu associé au widget Revenu ####"
+        for activite in ui.Projet.ListeActivites:
+            for cout in activite.getlistCout():
+                if cout.getNom() == CostWidget.text(0) and CostWidget.checkState(0) == 2:
+                    if activite.getNom() == CostWidget.parent().text(0):
+                        Cout = cout
+                        self.detailed_cout(Cout)
+        
     def detailed_produit(self,Revenu):
         print("Working Button")
-        
         ####### Partie 1 Facturation   ######
         List_TypeF = ['100% à la Vente','Abbonement','Echeances Personnalisés']
         List_Periodes = [('Jours',1),('Semaines',7),('mois',30),('Trimestre',90),('Semestre',180),('Année',360)]
@@ -561,11 +592,52 @@ class Ui_Form_3(object):
         # HorizLayout.addWidget(Duree)
         # HorizLayout.addWidget(combo_periodes)
         # self.layout_SArea.addLayout(HorizLayout)
+    
+    def detailed_cout(self,Cout):
+        print("Working Button")
         
+        ####### Partie 1 Facturation   ######
+        List_TypeF = ['100% à l\'Achat','Abbonement','Echéances Personnalisés']
+        List_Periodes = [('Jours',1),('Semaines',7),('mois',30),('Trimestre',90),('Semestre',180),('Année',360)]
+        groupBox = QtWidgets.QGroupBox()
+        groupBox.setTitle("Type et pas de facturation")
+        vertic_gb = QtWidgets.QVBoxLayout(groupBox)
+        Label1 = QtWidgets.QLabel()
+        Label1.setText("Type de Facturation")
+        combo_Facturation = QtWidgets.QComboBox()
+        button = QtWidgets.QPushButton()
+        button.setText("Valider")
+        for i in List_TypeF:
+            combo_Facturation.addItem(i)
+        
+        HorizLayout = QtWidgets.QHBoxLayout()
+        HorizLayout.addWidget(Label1)
+        HorizLayout.addWidget(combo_Facturation)
+        vertic_gb.addLayout(HorizLayout)
+        vertic_gb.addStretch(1)
+        Label3 = QtWidgets.QLabel()
+        Label3.setText("Pas de Facturation       ")
+        combo_periodes_2 = QtWidgets.QComboBox()
+        for i in List_Periodes:
+            combo_periodes_2.addItem(i[0])
+        HorizLayout = QtWidgets.QHBoxLayout()
+        HorizLayout.addWidget(Label3)
+        HorizLayout.addWidget(combo_periodes_2)
+        vertic_gb.addLayout(HorizLayout)
+        vertic_gb.addStretch(1)
+        vertic_gb.addWidget(button)
+        self.layout_SArea_2.addWidget(groupBox)
+        self.layout_SArea_2.addStretch(1)
+        button.clicked.connect(lambda: self.valider_facturation(combo_Facturation.currentText(),combo_periodes_2.currentText(),vertic_gb,Cout))
+    
+
     def valider_facturation(self,facturation,pas,vertic_gb,Revenu):
         print(facturation)
         groupBox = QGroupBox()
-        groupBox.setTitle("Informations sur les produits")
+        if Revenu.__class__.__name__ == 'Cout':
+            groupBox.setTitle("Informations sur les charges")
+        else:
+            groupBox.setTitle("Informations sur les produits")
         groupVW = QVBoxLayout(groupBox)
         if facturation == '100% à la Vente':
             Revenu.isOnce = True
@@ -694,10 +766,15 @@ class Ui_Form_4(object):
         Form.setObjectName("Form")
         Form.resize(878, 525)
         self.groupBox = QtWidgets.QGroupBox(Form)
-        self.groupBox.setGeometry(QtCore.QRect(20, 50, 821, 241))
-        self.groupBox.setTitle("Informations sur les couts")
+        self.groupBox.setGeometry(QtCore.QRect(20, 50, 400, 241))
+        self.groupBox.setTitle("Informations sur les Revenus")
+        #Modif Ajoutée
+        self.groupBox_2 = QtWidgets.QGroupBox(Form)
+        self.groupBox_2.setGeometry(QtCore.QRect(20,330,400,241))
+        self.groupBox_2.setTitle("Informations sur les Couts")
+        #Modif Terminée
         self.scrollArea = QtWidgets.QScrollArea(self.groupBox)
-        self.scrollArea.setGeometry(QtCore.QRect(0, 0, 821, 241))
+        self.scrollArea.setGeometry(QtCore.QRect(0, 0, 400, 241))
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.widget = QWidget()
@@ -713,88 +790,211 @@ class Ui_Form_4(object):
         font.setWeight(75)
         self.label.setFont(font)
         self.label.setObjectName("label")
+        #Modif Ajoutée
+        self.scrollArea_2 = QtWidgets.QScrollArea(self.groupBox_2)
+        self.scrollArea_2.setGeometry(QtCore.QRect(0, 0, 400, 241))
+        self.scrollArea_2.setWidgetResizable(True)
+        self.scrollArea_2.setObjectName("scrollArea_2")
+        self.widget_2 = QWidget()
+        self.scrollArea_2.setWidget(self.widget_2)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.widget_2)
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.label_2 = QtWidgets.QLabel(Form)
+        self.label_2.setGeometry(QtCore.QRect(20, 300, 241, 16))
+        self.label_2.setFont(font)
+        self.label_2.setObjectName("label_2")
+        self.groupBox_3 = QGroupBox(Form)
+        self.groupBox_3.setTitle("Saisie paramètres Intrinsèques et Marché")
+        self.groupBox_3.setGeometry(QtCore.QRect(440, 150, 400, 150))
+        self.groupBox_4 = QGroupBox(Form)
+        self.groupBox_4.setTitle("Generer les résultats finals")
+        self.groupBox_4.setGeometry(QtCore.QRect(440, 330, 400, 150))
+        self.labelInfo = QLabel(self.groupBox_3)
+        self.labelInfo.setGeometry(QtCore.QRect(20,20, 400, 30))
+        self.labelInfo_2 = QLabel(self.groupBox_4)
+        self.labelInfo_2.setGeometry(QtCore.QRect(20,20, 400, 30))
+        self.labelInfo.setText("Une fois les informations mentionnés, \n vous pouvez ouvrir le fichier excel propre à la saisie")
+        self.buttonOpen = QPushButton(self.groupBox_3)
+        self.buttonOpen.setGeometry(QtCore.QRect(150,60, 100, 40))
+        self.buttonOpen.setText("Ouvrir Fichier")
+        self.labelInfo_2.setText("Une fois le Remplissage des fini, vous pouvez génerer vos Résultats")
+        self.buttonCPC = QPushButton(self.groupBox_4)
+        self.buttonCPC.setGeometry(QtCore.QRect(100,70, 100, 40))
+        self.buttonCPC.setText("CPC")
+        self.buttonTFT = QPushButton(self.groupBox_4)
+        self.buttonTFT.setText("TFT")
+        self.buttonTFT.setGeometry(QtCore.QRect(220,70, 100, 40))
+        
+        #Modif Terminé
         self.retranslateUi(Form)
+        # self.tabWidget = QTabWidget(Form)
+        # self.tabWidget.setGeometry(QtCore.QRect(440, 50, 400, 241))
+        # self.tabWidget.setObjectName("tabWidget")
         QtCore.QMetaObject.connectSlotsByName(Form)
         self.initUI()
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.label.setText(_translate("Form", "Informations sur les revenus"))
+        Form.setWindowTitle(_translate("Form", "Saisie Intrinsèque et affichage du résultat"))
+        self.label.setText(_translate("Form", "Informations sur les Revenus"))
+        self.label_2.setText(_translate("Form", "Informations sur les Couts"))
+        self.Form = Form
     
     def initUI(self):
+        FontActivite = QFont()
+        FontActivite.setBold(True)
+        FontActivite.setPointSize(14)
+        
+        FontCout = QFont()
+        FontCout.setBold(True)
+        FontCout.setPointSize(12)
+        FontCout.setUnderline(True)
+        
+        FontTitre = QFont()
+        FontTitre.setItalic(True)
+        FontTitre.setPointSize(10)
+        FontTitre.setUnderline(True)
+        
         for activite in ui.Projet.ListeActivites:
             label = QtWidgets.QLabel()
-            label.setText(activite.getNom())
+            label.setText(str(ui.Projet.ListeActivites.index(activite)+1)+". "+activite.getNom())
+            label.setFont(FontActivite)
+            label.setMargin(5)
             self.verticalLayout.addWidget(label)
             self.verticalLayout.addStretch(1)
+            self.verticalLayout_2.addWidget(label)
+            self.verticalLayout_2.addStretch(1)
             for revenu in activite.getlistRev():
+                revenu.Horizon = ui.Projet.Horizon
+            for cost in activite.getlistCout():
+                cost.Horizon = ui.Projet.Horizon
                 listeQuestions = revenu.SaisieIntrinseque_1()
                 for question in listeQuestions:
                     titreTableau = QtWidgets.QLabel()
-                    titreTableau.setText("          "+str(question[0]))
+                    titreTableau.setText(str(question[0]))
+                    titreTableau.setFont(FontTitre)
+                    titreTableau.setMargin(7)
                     self.verticalLayout.addWidget(titreTableau)
                     for i in range(1,len(question)):
                         HorizentalLayout = QHBoxLayout()
                         label = QLabel()
                         label.setText(question[i][1])
+                        label.setMargin(5)
                         lineEdit = QLineEdit()
+                        print(revenu.DicoFormes[question[0]][question[i][0]])
+                        lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[i][0],arg4="Int",arg5=revenu: self.assign_field_to_value(arg1,arg2,arg3,arg4,arg5))
                         lineEdit.setObjectName(question[i][0]+str(i))
-                        #revenu.DicoFormes[titreTableau][question[i][0]] = bind(question[i][0]+str(i),"text",str)
                         HorizentalLayout.addWidget(label)
                         HorizentalLayout.addWidget(lineEdit)
                         self.verticalLayout.addLayout(HorizentalLayout)
                         self.verticalLayout.addStretch(1)
-                    
                 listeQuestions = revenu.SaisieMarche_1()
                 for question in listeQuestions:
                     titreTableau = QtWidgets.QLabel()
-                    titreTableau.setText("          "+str(question[0]))
+                    titreTableau.setText(str(question[0]))
+                    titreTableau.setFont(FontTitre)
+                    titreTableau.setMargin(7)
                     self.verticalLayout.addWidget(titreTableau)
                     for i in range(1,len(question)):
                         HorizentalLayout = QHBoxLayout()
                         label = QLabel()
                         label.setText(question[i][1])
+                        label.setMargin(5)
                         lineEdit = QLineEdit()
                         print(revenu.DicoFormesMarche[question[0]][question[i][0]])
-                        lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[i][0]: self.assign_field_to_value(arg1,arg2,arg3))
-                        #,revenu.DicoFormesMarche[titreTableau][question[i][0]]))
+                        lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[i][0],arg4="Mar",arg5=revenu: self.assign_field_to_value(arg1,arg2,arg3,arg4,arg5))
                         lineEdit.setObjectName(question[i][0]+str(i))
-                        #revenu.DicoFormes[titreTableau][question[i][0]] = bind(question[i][0]+str(i),"text",str)
                         HorizentalLayout.addWidget(label)
                         HorizentalLayout.addWidget(lineEdit)
                         self.verticalLayout.addLayout(HorizentalLayout)
                         self.verticalLayout.addStretch(1)    
-                    
-                # for i in revenu.SaisieMarche_1():
-                #     titreTableau = QtWidgets.QLabel()
-                #     titreTableau.setText("          "+str(i[0]))
-                #     self.verticalLayout.addWidget(titreTableau)
-                #     HorizentalLayout = QHBoxLayout()
-                #     label = QLabel()
-                #     label.setText(str(i[1][0]))
-                #     lineEdit = QLineEdit()
-                #     HorizentalLayout.addWidget(label)
-                #     HorizentalLayout.addWidget(lineEdit)
-                #     self.verticalLayout.addLayout(HorizentalLayout)
-                #     self.verticalLayout.addStretch(1)
-                #     HorizentalLayout = QHBoxLayout()
-                #     label = QLabel()
-                #     label.setText(i[1][1])
-                #     lineEdit = QLineEdit()
-                #     HorizentalLayout.addWidget(label)
-                #     HorizentalLayout.addWidget(lineEdit)
-                #     self.verticalLayout.addLayout(HorizentalLayout)
-                #     self.verticalLayout.addStretch(1)
+            #Modification des couts
+            for cout in activite.getlistCout():
+                labelCout = QtWidgets.QLabel()
+                IndexActivite = str(ui.Projet.ListeActivites.index(activite)+1)
+                IndexCout = str(activite.getlistCout().index(cout)+1)
+                labelCout.setText(IndexActivite+"."+IndexCout+"- "+cout.getNom())
+                labelCout.setFont(FontCout)
+                labelCout.setMargin(5)
+                self.verticalLayout_2.addWidget(labelCout)
+                self.verticalLayout_2.addStretch(1)
+                listeQuestions = cout.SaisieIntrinseque_1()
+                for question in listeQuestions:
+                    titreTableau = QtWidgets.QLabel()
+                    titreTableau.setText(str(question[0]))
+                    titreTableau.setFont(FontTitre)
+                    titreTableau.setMargin(7)
+                    self.verticalLayout_2.addWidget(titreTableau)
+                    for i in range(1,len(question)):
+                        HorizentalLayout = QHBoxLayout()
+                        label = QLabel()
+                        label.setText(question[i][1])
+                        label.setMargin(5)
+                        lineEdit = QLineEdit()
+                        lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[i][0],arg4="Int",arg5=cout: self.assign_field_to_value(arg1,arg2,arg3,arg4,arg5))
+                        lineEdit.setObjectName(question[i][0]+str(i))
+                        HorizentalLayout.addWidget(label)
+                        HorizentalLayout.addWidget(lineEdit)
+                        self.verticalLayout_2.addLayout(HorizentalLayout)
+                        self.verticalLayout_2.addStretch(1)
+                listeQuestions = cout.SaisieMarche_1()
+                for question in listeQuestions:
+                    titreTableau = QtWidgets.QLabel()
+                    titreTableau.setText(str(question[0]))
+                    titreTableau.setFont(FontTitre)
+                    titreTableau.setMargin(7)
+                    self.verticalLayout_2.addWidget(titreTableau)
+                    for i in range(1,len(question)):
+                        HorizentalLayout = QHBoxLayout()
+                        label = QLabel()
+                        label.setText(question[i][1])
+                        label.setMargin(5)
+                        lineEdit = QLineEdit()
+                        print(cout.DicoFormesMarche[question[0]][question[i][0]])
+                        lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[i][0],arg4="Mar",arg5=cout: self.assign_field_to_value(arg1,arg2,arg3,arg4,arg5))
+                        lineEdit.setObjectName(question[i][0]+str(i))
+                        HorizentalLayout.addWidget(label)
+                        HorizentalLayout.addWidget(lineEdit)
+                        self.verticalLayout_2.addLayout(HorizentalLayout)
+                        self.verticalLayout_2.addStretch(1)     
+            #Fin de modification des couts
+
             button = QPushButton()
+            button.setText("Valider")
             self.verticalLayout.addWidget(button)
-            button.clicked.connect(self.clicked_params_rev)
-        
-    def clicked_params_rev(self):
-        pass
-    def assign_field_to_value(self,line,cle1,cle2):
+            self.verticalLayout.addStretch(1)
+            button.clicked.connect(self.resizeRevenuTables)
+            
+            button_2 = QPushButton()
+            button_2.setText("Valider")
+            button_2.clicked.connect(self.resizeCostTables)
+            self.verticalLayout_2.addWidget(button_2)
+            self.verticalLayout_2.addStretch(1)
+            
+            
+ #######       
+    def resizeRevenuTables(self):
+        print("Clicked")
+        for activite in ui.Projet.ListeActivites:
+            for revenu in activite.getlistRev():
+                revenu.resizeTableaux()
+                revenu.resizeTableauxMarche()
+    
+    def resizeCostTables(self):
+        print("Clicked")
+        for activite in ui.Projet.ListeActivites:
+            for cout in activite.getlistCout():
+                cout.resizeTableaux()
+                cout.resizeTableauxMarche()
+    def assign_field_to_value(self,line,cle1,cle2,type,Revenu_Cost):
         print(line)
         print(cle1)
         print(cle2)
+        if type == "Int":
+            Revenu_Cost.DicoFormes[cle1][cle2] = int(line)
+        else:
+            Revenu_Cost.DicoFormesMarche[cle1][cle2] = int(line)
+        
 def SendTables():
     ui2.tableWidget.setColumnCount(ui.tableWidget.columnCount())
     ui2.tableWidget.setRowCount(ui.tableWidget.rowCount()+ui.tableWidget_2.rowCount()+4)
