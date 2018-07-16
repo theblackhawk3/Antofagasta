@@ -1,3 +1,5 @@
+import numpy as np
+
 def CalculerRevenu(revenu):
     DictTableaux = revenu.getDicoTableaux()
     if revenu.getNom() == 'Inscriptions enregistrées dans un cours':

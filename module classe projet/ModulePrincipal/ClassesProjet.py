@@ -1,5 +1,7 @@
 from openpyxl import *
-from openpyxl.styles import Font, Color
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font, Color,NamedStyle
+from FormulesCouts import *
+from FormulesRevenus import *
 import pandas as pd
 import numpy as np
 import os
@@ -69,7 +71,6 @@ def excel_dfs(Dict, file_name, spaces):
     
 
 class Projet:
-    
     def __init__(self,Nom="",Localisation="",ListeActivites=[],Horizon=0,CPC=[]):
         self.Nom = Nom
         self.ListeActivitesSecondaires = []
@@ -84,7 +85,19 @@ class Projet:
         self.WordRowCol = {}
         self.DictRecolte = {"Int couts":{},
                            "Mar couts":{}}
-                           
+        self.ProduitsFinanciers = []
+        self.ChargesFinancieres = []
+        self.Interets = []
+        self.Amortissements = []
+        self.Impots = []
+        self.ResultatNet = []
+        self.FondsPropres = []
+        self.CCA = []
+        self.Dette = []
+        self.RemboursementDette = []
+        self.FluxTresorerie = []
+        self.FluxTresorerieAcc = []
+        
     def PrepareExcelInput(self):
         for activite in self.ListeActivites:
             for key in self.DictParams.keys():
@@ -160,33 +173,346 @@ class Projet:
     
     def CommencerSaisie(self):
         pass
-    
-    def GenerateCPC(self):
-        wb = load_workbook('CPC.xlsx')
-        TotalCouts= [] # cette liste va contenir les listes resultats des couts afin de les somme par après 
-        ws=wb['CPC']
-        ws['A1'] = 'Couts'
-        PCPC = 2
+    def GenerateTFT(self):
+        wb = Workbook()
+        wb.create_sheet("TFT")
+        ws=wb['TFT']
+        style1 = NamedStyle(name="style1")
+        style1.font = Font(name="Calibri",bold="True",size=13,color="FFFFFF")
+        style1.alignment = Alignment(horizontal = "center", vertical = "center")
+        style1.fill = PatternFill("solid",fgColor="C00000")
+        # Style 2 - PRODUITS D'EXPLOITATION
+        style2 = NamedStyle(name="style2")
+        style2.font = Font(name="Calibri",bold="True",size=13,color="000000")
+        style2.alignment = Alignment(horizontal = "left", vertical = "center")
+        style2.fill = PatternFill("solid",fgColor="AEAAAA")
+        # Style 2 - PRODUITS D'EXPLOITATION
+        style2_numbers = NamedStyle(name="style2_numbers")
+        style2_numbers.font = Font(name="Calibri",bold="True",size=11,color="000000")
+        style2_numbers.alignment = Alignment(horizontal = "center", vertical = "center",indent = 0)
+        style2_numbers.fill = PatternFill("solid",fgColor="AEAAAA")
+        # Style 3 - Prestation de cours 
+        style3 = NamedStyle(name="style3")
+        style3.font = Font(name="Calibri",bold="True",size=11,color="000000")
+        style3.alignment = Alignment(horizontal = "left", vertical = "center")
+        style3.fill = PatternFill("solid",fgColor="D9D9D9")
+        # Style 3_numbers - Prestation de cours 
+        style3_numbers = NamedStyle(name="style3_numbers")
+        style3_numbers.font = Font(name="Calibri",bold="True",size=11,color="000000")
+        style3_numbers.alignment = Alignment(horizontal = "center", vertical = "center",indent=0)
+        style3_numbers.fill = PatternFill("solid",fgColor="D9D9D9")
+        # Style 4 - Inscriptions enregistrés
+        style4 = NamedStyle(name="style4")
+        style4.font = Font(name="Calibri",bold="True",size=10,color="000000")
+        style4.alignment = Alignment(horizontal = "left", vertical = "center",indent = 5)
+        style4.fill = PatternFill("solid",fgColor="D9D9D9")
+        # Style 4_Numbers
+        style4_numbers = NamedStyle(name="style4_numbers")
+        style4_numbers.font = Font(name="Calibri",bold="True",size=11,color="000000")
+        style4_numbers.alignment = Alignment(horizontal = "center", vertical = "center",indent = 0)
+        style4_numbers.fill = PatternFill("solid",fgColor="D9D9D9")
+        # Style 5 - TOTAL
+        style5 = NamedStyle(name="style5")
+        style5.font = Font(name="Calibri",bold="True",size=13,color="000000")
+        style5.alignment = Alignment(horizontal = "left", vertical = "center",indent=0)
+        style5.fill = PatternFill("solid",fgColor="AEAAAA")
+        Thin = Side(border_style="thin", color="000000")
+        style5.border = Border(bottom = Thin)
+        #Style 5 Total_numbers
+        style5_numbers = NamedStyle(name="style5_numbers")
+        style5_numbers.font = Font(name="Calibri",bold="True",size=11,color="000000")
+        style5_numbers.alignment = Alignment(horizontal = "center", vertical = "center",indent=0)
+        style5_numbers.fill = PatternFill("solid",fgColor="AEAAAA")
+        Thin = Side(border_style="thin", color="000000")
+        style5_numbers.border = Border(bottom = Thin)
+        # Style 6 - RESULTAT D'EXPLOITATION
+        style6 = NamedStyle(name="style6")
+        style6.font = Font(name="Calibri",bold="True",size=13,color="FFFFFF")
+        style6.alignment = Alignment(horizontal = "left", vertical = "center")
+        style6.fill = PatternFill("solid",fgColor="C00000")
+        #Style 6 Numbers
+        style6_numbers = NamedStyle(name="style6_numbers")
+        style6_numbers.font = Font(name="Calibri",bold="True",size=11,color="FFFFFF")
+        style6_numbers.alignment = Alignment(horizontal = "center", vertical = "center",indent = 0)
+        style6_numbers.fill = PatternFill("solid",fgColor="C00000")
+        ws['A1'].value= 'TFT Projet '+self.Nom
+        ws['A1'].style = 'Headline 1'
         for i in range(self.Horizon):
-            ws.cell(1,i+3).value = 't = '+str(i+1)
+            ws.cell(3,i+2).value = 'A'+str(i+1)
+            ws.cell(3,i+2).style = style1
+        #### Resultat Net
+        PTFT = 4
+        ws.cell(PTFT,1).value = "Resultat Net"
+        ws.cell(PTFT,1).style = style3
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = self.ResultatNet[i]
+            ws.cell(PTFT,i+2).style = style3_numbers
+        PTFT += 1
+        # # # # # Fonds Propres Injectés
+        self.FondsPropres = [0]*self.Horizon
+        ws.cell(PTFT,1).value = "Fond Propres"
+        ws.cell(PTFT,1).style = style3
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = self.FondsPropres[i]
+            ws.cell(PTFT,i+2).style = style3_numbers
+        PTFT += 1
+        # # # # # Dette Injectée
+        self.Dette = [0]*self.Horizon
+        ws.cell(PTFT,1).value = "Dette Injectée"
+        ws.cell(PTFT,1).style = style3
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = self.Dette[i]
+            ws.cell(PTFT,i+2).style = style3_numbers
+        PTFT += 1
+        # # # # # IS
+        ws.cell(PTFT,1).value = "IS"
+        ws.cell(PTFT,1).style = style3
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = self.Impots[i]
+            ws.cell(PTFT,i+2).style = style3_numbers
+        PTFT += 1
+        # # # # # Remboursement de la dette (Capital)
+        self.RemboursementDette = [0]*self.Horizon
+        ws.cell(PTFT,1).value = "Remboursement de la dette"
+        ws.cell(PTFT,1).style = style3
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = self.RemboursementDette[i]
+            ws.cell(PTFT,i+2).style = style3_numbers
+        PTFT += 1
+        # # # # # Interets financiers
+        ws.cell(PTFT,1).value = "Interets financiers"
+        ws.cell(PTFT,1).style = style3
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = self.Interets[i]
+            ws.cell(PTFT,i+2).style = style3_numbers
+        PTFT += 1
+        # # # # # Flux de trésorerie
+        ws.cell(PTFT,1).value = "Flux de trésorerie"
+        ws.cell(PTFT,1).style = style3
+        self.FluxTresorerie = [0]*self.Horizon
+        for i in range(self.Horizon):
+            self.FluxTresorerie[i] = self.ResultatNet[i] + self.FondsPropres[i] + self.Dette[i] -self.Impots[i] - self.Interets[i] - self.RemboursementDette[i]
+            ws.cell(PTFT,i+2).value = self.FluxTresorerie[i]
+            ws.cell(PTFT,i+2).style = style3_numbers
+        PTFT += 1
+        # # # # # Trésorerie accumulée
+        ws.cell(PTFT,1).value = "Trésorerie Accumulée"
+        ws.cell(PTFT,1).style = style3
+        self.FluxTresorerieAcc = [0]*self.Horizon
+        for i in range(self.Horizon):
+            if i == 0:
+                self.FluxTresorerieAcc[i] = self.FluxTresorerie[i]
+                ws.cell(PTFT,i+2).value = self.FluxTresorerieAcc[i]
+            else:
+                self.FluxTresorerieAcc[i] = self.FluxTresorerieAcc[i-1] + self.FluxTresorerie[i]
+                ws.cell(PTFT,i+2).value = self.FluxTresorerieAcc[i]
+            ws.cell(PTFT,i+2).style = style3_numbers
+        PTFT += 1
+        wb.remove(wb['Sheet'])
+        wb.save("tft.xlsx")
+    def GenerateCPC(self):
+        ######### Partie calcul des elements du cpc ##########
+        ######################################################
+        # Style 1 --- A1,A2----An
+        style1 = NamedStyle(name="style1")
+        style1.font = Font(name="Calibri",bold="True",size=13,color="FFFFFF")
+        style1.alignment = Alignment(horizontal = "center", vertical = "center")
+        style1.fill = PatternFill("solid",fgColor="C00000")
+        # Style 2 - PRODUITS D'EXPLOITATION
+        style2 = NamedStyle(name="style2")
+        style2.font = Font(name="Calibri",bold="True",size=13,color="000000")
+        style2.alignment = Alignment(horizontal = "left", vertical = "center")
+        style2.fill = PatternFill("solid",fgColor="AEAAAA")
+        # Style 2 - PRODUITS D'EXPLOITATION
+        style2_numbers = NamedStyle(name="style2_numbers")
+        style2_numbers.font = Font(name="Calibri",bold="True",size=11,color="000000")
+        style2_numbers.alignment = Alignment(horizontal = "center", vertical = "center",indent = 0)
+        style2_numbers.fill = PatternFill("solid",fgColor="AEAAAA")
+        # Style 3 - Prestation de cours 
+        style3 = NamedStyle(name="style3")
+        style3.font = Font(name="Calibri",bold="True",size=11,color="000000")
+        style3.alignment = Alignment(horizontal = "left", vertical = "center")
+        style3.fill = PatternFill("solid",fgColor="D9D9D9")
+        # Style 4 - Inscriptions enregistrés
+        style4 = NamedStyle(name="style4")
+        style4.font = Font(name="Calibri",bold="True",size=10,color="000000")
+        style4.alignment = Alignment(horizontal = "left", vertical = "center",indent = 5)
+        style4.fill = PatternFill("solid",fgColor="D9D9D9")
+        # Style 4_Numbers
+        style4_numbers = NamedStyle(name="style4_numbers")
+        style4_numbers.font = Font(name="Calibri",bold="True",size=11,color="000000")
+        style4_numbers.alignment = Alignment(horizontal = "center", vertical = "center",indent = 0)
+        style4_numbers.fill = PatternFill("solid",fgColor="D9D9D9")
+        # Style 5 - TOTAL
+        style5 = NamedStyle(name="style5")
+        style5.font = Font(name="Calibri",bold="True",size=13,color="000000")
+        style5.alignment = Alignment(horizontal = "left", vertical = "center",indent=0)
+        style5.fill = PatternFill("solid",fgColor="AEAAAA")
+        Thin = Side(border_style="thin", color="000000")
+        style5.border = Border(bottom = Thin)
+        #Style 5 Total_numbers
+        style5_numbers = NamedStyle(name="style5_numbers")
+        style5_numbers.font = Font(name="Calibri",bold="True",size=11,color="000000")
+        style5_numbers.alignment = Alignment(horizontal = "center", vertical = "center",indent=0)
+        style5_numbers.fill = PatternFill("solid",fgColor="AEAAAA")
+        Thin = Side(border_style="thin", color="000000")
+        style5_numbers.border = Border(bottom = Thin)
+        # Style 6 - RESULTAT D'EXPLOITATION
+        style6 = NamedStyle(name="style6")
+        style6.font = Font(name="Calibri",bold="True",size=13,color="FFFFFF")
+        style6.alignment = Alignment(horizontal = "left", vertical = "center")
+        style6.fill = PatternFill("solid",fgColor="C00000")
+        
+        #Style 6 Numbers
+        style6_numbers = NamedStyle(name="style6_numbers")
+        style6_numbers.font = Font(name="Calibri",bold="True",size=11,color="FFFFFF")
+        style6_numbers.alignment = Alignment(horizontal = "center", vertical = "center",indent = 0)
+        style6_numbers.fill = PatternFill("solid",fgColor="C00000")
+        
+        #cette méthode permet de genere un cpc dans un premier temps en vision anuelle 
+        #Section 1 : Ouverture et definition de la taille
+        wb = Workbook()
+        wb.create_sheet("CPC")
+        ws=wb['CPC']
+        TotalRevenusOp = [0]*self.Horizon
+        TotalCoutsOp= [0]*self.Horizon
+        ws['A1'] = 'CPC Projet '+self.Nom
+        ws['A1'].style = 'Headline 1'
+        ws['A4'] = 'PRODUITS D\'EXPLOITATION'
+        ws['A4'].style = style2
+        for i in range(self.Horizon):
+            ws.cell(4,i+2).style = style2
+        Horizon = self.Horizon
+        for i in range(Horizon):
+            ws.cell(3,i+2).value = 'A'+str(i+1)
+            ws.cell(3,i+2).style = style1 
+        ####Section Produits d'exploitation
+        PCPC = 5
         for activite in self.ListeActivites:
             ws['A'+str(PCPC)].value = activite.getNom()
-            PCPC+=1
+            ws['A'+str(PCPC)].style = style3
+            for i in range(Horizon):
+                ws.cell(PCPC,i+2).style = style3
+            PCPC += 1
+            for revenu in activite.getlistRev():
+                ws['A'+str(PCPC)].value = revenu.getNom()
+                ws['A'+str(PCPC)].style = style4
+                for i in range(Horizon):
+                    ws.cell(PCPC,i+2).value = revenu.resultat[i]
+                    ws.cell(PCPC,i+2).style = style4_numbers
+                    TotalRevenusOp[i]+=revenu.resultat[i]
+                PCPC +=1
+        ws['A'+str(PCPC)].value = 'TOTAL PRODUITS D\'EXPLOITATION'
+        ws['A'+str(PCPC)].style = style5
+        for i in range(Horizon):
+            ws.cell(PCPC,i+2).value = TotalRevenusOp[i]
+            ws.cell(PCPC,i+2).style = style5_numbers
+        PCPC +=1
+        ### Section Charges Exploitation
+        ws['A'+str(PCPC)].value = 'CHARGES D\'EXPLOITATION'
+        ws['A'+str(PCPC)].style = style2
+        for i in range(self.Horizon):
+            ws.cell(PCPC,i+2).style = style2
+        PCPC +=1
+        for activite in self.ListeActivites:
+            ws['A'+str(PCPC)].value = activite.getNom()
+            ws['A'+str(PCPC)].style = style3
+            for i in range(self.Horizon):
+                ws.cell(PCPC,i+2).style = style3
+            PCPC += 1
             for cout in activite.getlistCout():
-                ws['B'+str(PCPC)].value = cout.getNom()
-                for index,result in enumerate(cout.resultat):
-                    ws.cell(PCPC,index+3).value = result
-                TotalCouts.append(cout.resultat)
-                PCPC += 1
-        ws['A'+str(PCPC)].value = 'Total des couts'
-        print("Avant")
-        print(TotalCouts)
-        TotalCouts = list(np.sum(np.array(TotalCouts),axis=0))
-        print("Après")
-        print(TotalCouts)
-        for index,total in enumerate(TotalCouts):
-            ws.cell(PCPC,index+3).value = total
-        wb.save('CPC.xlsx')
+                ws['A'+str(PCPC)].value = cout.getNom()
+                ws['A'+str(PCPC)].style = style4
+                for i in range(Horizon):
+                    ws.cell(PCPC,i+2).value = cout.resultat[i]
+                    ws.cell(PCPC,i+2).style = style4_numbers
+                    TotalCoutsOp[i]+=cout.resultat[i]
+                PCPC +=1
+        ws['A'+str(PCPC)].value = 'TOTAL CHARGES D\'EXPLOITATION'
+        ws['A'+str(PCPC)].style = style5
+        for i in range(Horizon):
+            ws.cell(PCPC,i+2).value = TotalCoutsOp[i]
+            ws.cell(PCPC,i+2).style = style5_numbers
+        PCPC +=1
+        ws['A'+str(PCPC)].value = 'RESULTAT D\'EXPLOITATION'
+        ws['A'+str(PCPC)].style = style6
+        TotalResultatOp = [0]*self.Horizon
+        for i in range(Horizon):
+            TotalResultatOp[i] = TotalRevenusOp[i] - TotalCoutsOp[i]
+            ws.cell(PCPC,i+2).value = TotalResultatOp[i]
+            ws.cell(PCPC,i+2).style = style6_numbers
+        PCPC +=1
+        ###Section Produits Financiers
+        ws['A'+str(PCPC)].value = 'PRODUITS FINANCIERS'
+        ws['A'+str(PCPC)].style = style2
+        self.ProduitsFinanciers = [0]*self.Horizon
+        for i in range(self.Horizon):
+            ws.cell(PCPC,i+2).value = self.ProduitsFinanciers[i]
+            ws.cell(PCPC,i+2).style = style2_numbers
+        PCPC +=1
+        ###Section Charges Financières
+        ws['A'+str(PCPC)].value = 'CHARGES FINANCIERES'
+        ws['A'+str(PCPC)].style = style2
+        self.Interets = [0]*self.Horizon
+        for i in range(self.Horizon):
+            ws.cell(PCPC,i+2).style = style2
+        PCPC +=1
+        ws['A'+str(PCPC)].value = 'Intêrets'
+        ws['A'+str(PCPC)].style = style4
+        for i in range(self.Horizon):
+            ws.cell(PCPC,i+2).value = self.Interets[i]
+            ws.cell(PCPC,i+2).style = style4_numbers
+        PCPC +=1
+        ###Section Resultat Financiers
+        ws['A'+str(PCPC)].value = 'RESULTAT FINANCIER'
+        ws['A'+str(PCPC)].style = style6
+        ResultatFinancier = [0]*self.Horizon
+        for i in range(self.Horizon):
+            ResultatFinancier[i] = self.ProduitsFinanciers[i] - self.Interets[i]
+            ws.cell(PCPC,i+2).style = style6_numbers
+        PCPC += 1
+        ###Section Dotations
+        ws['A'+str(PCPC)].value = 'DOTATIONS'
+        ws['A'+str(PCPC)].style = style2
+        for i in range(self.Horizon):
+            ws.cell(PCPC,i+2).style = style2
+        PCPC += 1
+        ws['A'+str(PCPC)].value = 'Amortissements'
+        ws['A'+str(PCPC)].style = style4
+        self.Amortissements = [0]*self.Horizon
+        for i in range(self.Horizon):
+            ws.cell(PCPC,i+2).value = self.Amortissements[i]
+            ws.cell(PCPC,i+2).style = style4_numbers
+        PCPC +=1
+        
+        ###Section Resultat avant Impots
+        ws['A'+str(PCPC)].value = 'RESULTAT AVANT IMPOT'
+        ws['A'+str(PCPC)].style = style6
+        RAI =[0]*self.Horizon
+        for i in range(self.Horizon):
+            RAI[i] = TotalResultatOp[i] + ResultatFinancier[i] - self.Amortissements[i]
+            ws.cell(PCPC,i+2).value = RAI[i]
+            ws.cell(PCPC,i+2).style =  style6_numbers
+        PCPC += 1
+        
+        ###Section Impôts
+        ws['A'+str(PCPC)].value = 'IMPÔTS'
+        ws['A'+str(PCPC)].style = style2
+        self.Impots = [0]*self.Horizon
+        for i in range(self.Horizon):
+            ws.cell(PCPC,i+2).value = self.Impots[i]
+            ws.cell(PCPC,i+2).style = style2_numbers
+        PCPC += 1 
+           
+        ###Section Resultats nets
+        ws['A'+str(PCPC)].value = 'RESULTAT NET'
+        ws['A'+str(PCPC)].style = style6
+        self.ResultatNet = [0]*self.Horizon
+        for i in range(self.Horizon):
+            ws.cell(PCPC,i+2).value = RAI[i] - self.Impots[i] + self.Amortissements[i]
+            ws.cell(PCPC,i+2).style = style6_numbers
+        wb.remove(wb['Sheet'])
+        wb.save("cpc.xlsx")
 
     #Setters 
     def setNom(self,Nom):
@@ -566,7 +892,6 @@ class Cout:
         
     def CalculCout(self):
         CalculerCout(self)
-        pass
 
 class Revenu:
     def __init__(self,Nom = "", Horizon=0,SaisieStartCol = 1,CoutCPC = []):

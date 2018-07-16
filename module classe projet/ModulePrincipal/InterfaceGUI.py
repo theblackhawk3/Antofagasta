@@ -855,6 +855,8 @@ class Ui_Form_4(object):
         FontTitre.setPointSize(10)
         FontTitre.setUnderline(True)
         
+        self.buttonOpen.clicked.connect(self.open_excel)
+        
         for activite in ui.Projet.ListeActivites:
             label = QtWidgets.QLabel()
             label.setText(str(ui.Projet.ListeActivites.index(activite)+1)+". "+activite.getNom())
@@ -972,7 +974,17 @@ class Ui_Form_4(object):
             self.verticalLayout_2.addStretch(1)
             
             
- #######       
+ #######  
+    def open_excel(self):
+        ui.Projet.PrepareExcelInput()
+        ui.Projet.GetExcelInput()
+        for activite in ui.Projet.ListeActivites:
+            for revenu in activite.getlistRev():
+                CalculerRevenu(revenu)
+        for activite in ui.Projet.ListeActivites:
+            for cout in activite.getlistCout():
+                CalculerCout(cout)
+        ui.Projet.GenerateCPC()
     def resizeRevenuTables(self):
         print("Clicked")
         for activite in ui.Projet.ListeActivites:
