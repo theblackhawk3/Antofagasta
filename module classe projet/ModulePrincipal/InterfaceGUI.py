@@ -6,6 +6,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 import sys
+import win32com.client
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -40,6 +41,9 @@ class Ui_Form(QWidget):
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
         self.tabWidget.addTab(self.tab_2, "")
+        self.tab_3 = QtWidgets.QWidget()
+        self.tab_3.setObjectName("tab_3")
+        self.tabWidget.addTab(self.tab_3, "")
         self.pushButton = QtWidgets.QPushButton(Form)
         self.pushButton.setGeometry(QtCore.QRect(694, 60, 141, 31))
         self.pushButton.setObjectName("pushButton")
@@ -98,6 +102,12 @@ class Ui_Form(QWidget):
         self.pushButton_2 = QtWidgets.QPushButton(Form)
         self.pushButton_2.setGeometry(QtCore.QRect(885, 630, 101, 31))
         self.pushButton_2.setObjectName("pushButton_2")
+        self.comboPas = QtWidgets.QComboBox(Form)
+        self.comboPas.setGeometry(QtCore.QRect(661, 120, 80, 20))
+        self.comboPas.setObjectName("comboPas")
+        self.comboPas_2 = QtWidgets.QComboBox(Form)
+        self.comboPas_2.setGeometry(QtCore.QRect(661, 180, 80, 20))
+        self.comboPas_2.setObjectName("comboPas_2")
         self.retranslateUi(Form)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -108,6 +118,7 @@ class Ui_Form(QWidget):
         Form.setWindowTitle(_translate("Form", "Outil Modélisation Standardisée des projets D\'investissement"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Form", "Plan d\'investissement"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Form", "Plan de financement"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("Form", "Informations Dette"))
         self.pushButton.setText(_translate("Form", "Valider le choix"))
         self.label.setText(_translate("Form", "Selectionnez un projet"))
         self.label_2.setText(_translate("Form", "Activités"))
@@ -124,8 +135,11 @@ class Ui_Form(QWidget):
         self.ActivitesSecondaires = []
         #Le code D'initialisation des données et des liaisons
         self.ListeProjets = ['----------','Ecole Secondaire','Clinique','Restaurant','Projet Immobilier']
+        self.ListePas = ['Mois','Trimestre','Semestre','Année']
         self.pushButton.clicked.connect(self.on_confirm_click)
         self.comboBox.addItems(self.ListeProjets)
+        self.comboPas.addItems(self.ListePas)
+        self.comboPas_2.addItems(self.ListePas)
         self.progressBar.setProperty("value", 0)
         self.buttonConfirmActivity.clicked.connect(self.on_confirm_click2)
         self.ProjetValide = False
@@ -175,6 +189,14 @@ class Ui_Form(QWidget):
             msg.exec_()
         
     def on_confirm_click2(self):
+        if self.comboPas.currentText() == 'Mois':
+            self.Projet.pasVisualisation = 'M'
+        elif self.comboPas.currentText() == 'Trimestre':
+            self.Projet.pasVisualisation = 'T'
+        elif self.comboPas.currentText() == 'Semestre':
+            self.Projet.pasVisualisation = 'S'
+        elif self.comboPas.currentText() == 'Année':
+            self.Projet.pasVisualisation = 'A'
         if self.ActiviteValide == False:
             for i in self.Activites:
                 if i.checkState(0) == 0:
@@ -192,8 +214,8 @@ class Ui_Form(QWidget):
             self.tableWidget_2.item(1,0).setFont(QFont("Arial",12,italic =  True))
             self.tableWidget_2.item(1,1).setFont(QFont("Arial",12,italic =  True))
             for i in range(2,int(self.lineEdit.text())+2):
-                self.tableWidget.setItem(1,i,QTableWidgetItem("A"+str(i-1)))
-                self.tableWidget_2.setItem(1,i,QTableWidgetItem("A"+str(i-1)))
+                self.tableWidget.setItem(1,i,QTableWidgetItem(self.Projet.pasVisualisation+str(i-1)))
+                self.tableWidget_2.setItem(1,i,QTableWidgetItem(self.Projet.pasVisualisation+str(i-1)))
                 self.tableWidget.item(1,i).setBackground(QtGui.QColor("red"))
                 self.tableWidget_2.item(1,i).setBackground(QtGui.QColor("red"))                
                 self.tableWidget.item(1,i).setFont(QFont("Arial",12,italic =  True))
@@ -223,6 +245,7 @@ class Ui_Form(QWidget):
     def createTable(self):
         self.createTableInvest()
         self.createTableFinanc()
+        self.createTableDette()
                          
     def createTableInvest(self):
         self.tableWidget = QTableWidget(self.tab)
@@ -271,7 +294,23 @@ class Ui_Form(QWidget):
         self.tableWidget_2.setItem(4,0,QTableWidgetItem("Dette"))
         self.tableWidget_2.move(0,0)
         self.tableWidget_2.hide()
-            
+        
+    def createTableDette(self):
+        self.tableWidget_3 = QTableWidget(self.tab_3)
+        self.tableWidget_3.setGeometry(QtCore.QRect(390, 220, 595, 376))
+        self.tableWidget_3.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.tableWidget.move(0,0)
+        self.tableWidget_3.setRowCount(5)
+        self.tableWidget_3.setColumnCount(30)
+        self.tableWidget_3.setItem(0,0, QTableWidgetItem("Quels sont les spécifications de votre dette ?"))
+        self.tableWidget_3.item(0,0).setFont(QFont("Times New Roman",10,weight = 1))
+        self.tableWidget_3.setItem(1,0,QTableWidgetItem("Maturite"))
+        self.tableWidget_3.setItem(2,0,QTableWidgetItem("Taux"))
+        self.tableWidget_3.setItem(3,0,QTableWidgetItem("Periode de debut"))
+        self.tableWidget_3.setItem(4,0,QTableWidgetItem("Amortissement Capital"))
+        
+        self.tableWidget_3.move(0,0)
+        
     def clicked_add_invest(self):
         rowCount = self.tableWidget.rowCount()
         text = self.combo_invest.currentText()
@@ -527,6 +566,10 @@ class Ui_Form_3(object):
     
     
     def details_clicked(self):
+        for i in reversed(range(self.layout_SArea.count())): 
+            widgetToRemove = self.layout_SArea.itemAt(i).widget()
+            self.layout_SArea.removeWidget(widgetToRemove)
+            widgetToRemove.setParent(None)
         RevenuWidget = self.listWidget.selectedItems()[0] 
         ##### Revenu associé au widget Revenu ####"
         for activite in ui.Projet.ListeActivites:
@@ -536,8 +579,12 @@ class Ui_Form_3(object):
                         Revenu = revenu
                         self.detailed_produit(Revenu)
     def details_clicked_2(self):
+        for i in reversed(range(self.layout_SArea_2.count())): 
+            widgetToRemove = self.layout_SArea_2.itemAt(i).widget()
+            self.layout_SArea.removeWidget(widgetToRemove)
+            widgetToRemove.setParent(None)
         CostWidget = self.listWidget_2.selectedItems()[0] 
-        ##### Revenu associé au widget Revenu ####"
+        ##### Cout associé au widget Cout ####"
         for activite in ui.Projet.ListeActivites:
             for cout in activite.getlistCout():
                 if cout.getNom() == CostWidget.text(0) and CostWidget.checkState(0) == 2:
@@ -816,8 +863,11 @@ class Ui_Form_4(object):
         self.labelInfo_2.setGeometry(QtCore.QRect(20,20, 400, 30))
         self.labelInfo.setText("Une fois les informations mentionnés, \n vous pouvez ouvrir le fichier excel propre à la saisie")
         self.buttonOpen = QPushButton(self.groupBox_3)
-        self.buttonOpen.setGeometry(QtCore.QRect(150,60, 100, 40))
+        self.buttonOpen.setGeometry(QtCore.QRect(90,60, 100, 40))
         self.buttonOpen.setText("Ouvrir Fichier")
+        self.buttonSave = QPushButton(self.groupBox_3)
+        self.buttonSave.setGeometry(QtCore.QRect(200,60, 120, 40))
+        self.buttonSave.setText("Calcul des resultats")
         self.labelInfo_2.setText("Une fois le Remplissage des fini, vous pouvez génerer vos Résultats")
         self.buttonCPC = QPushButton(self.groupBox_4)
         self.buttonCPC.setGeometry(QtCore.QRect(100,70, 100, 40))
@@ -856,20 +906,36 @@ class Ui_Form_4(object):
         FontTitre.setUnderline(True)
         
         self.buttonOpen.clicked.connect(self.open_excel)
-        
+        self.buttonSave.clicked.connect(self.calculate_result)
+        self.buttonCPC.clicked.connect(self.open_cpc)
+        self.buttonTFT.clicked.connect(self.open_tft)
         for activite in ui.Projet.ListeActivites:
             label = QtWidgets.QLabel()
             label.setText(str(ui.Projet.ListeActivites.index(activite)+1)+". "+activite.getNom())
             label.setFont(FontActivite)
             label.setMargin(5)
+            label_2 = QtWidgets.QLabel()
+            label_2.setText(str(ui.Projet.ListeActivites.index(activite)+1)+". "+activite.getNom())
+            label_2.setFont(FontActivite)
+            label_2.setMargin(5)
             self.verticalLayout.addWidget(label)
             self.verticalLayout.addStretch(1)
-            self.verticalLayout_2.addWidget(label)
+            self.verticalLayout_2.addWidget(label_2)
             self.verticalLayout_2.addStretch(1)
             for revenu in activite.getlistRev():
                 revenu.Horizon = ui.Projet.Horizon
             for cost in activite.getlistCout():
                 cost.Horizon = ui.Projet.Horizon
+                
+            for revenu in activite.getlistRev():
+                labelRevenu = QtWidgets.QLabel()
+                IndexActivite = str(ui.Projet.ListeActivites.index(activite)+1)
+                IndexRevenu = str(activite.getlistRev().index(revenu)+1)
+                labelRevenu.setText(IndexActivite+"."+IndexRevenu+"- "+revenu.getNom())
+                labelRevenu.setFont(FontCout)
+                labelRevenu.setMargin(5)
+                self.verticalLayout.addWidget(labelRevenu)
+                self.verticalLayout.addStretch(1)
                 listeQuestions = revenu.SaisieIntrinseque_1()
                 for question in listeQuestions:
                     titreTableau = QtWidgets.QLabel()
@@ -977,6 +1043,11 @@ class Ui_Form_4(object):
  #######  
     def open_excel(self):
         ui.Projet.PrepareExcelInput()
+        ###### Open excel File ######
+        xl = win32com.client.gencache.EnsureDispatch('Excel.Application')
+        xl.Workbooks.Open('C:\\Users\\Adam\\Documents\\GitHub\\Antofagasta\\module classe projet\\ModulePrincipal\\Parametres.xlsx')
+        xl.Visible = True
+    def calculate_result(self):
         ui.Projet.GetExcelInput()
         for activite in ui.Projet.ListeActivites:
             for revenu in activite.getlistRev():
@@ -985,6 +1056,15 @@ class Ui_Form_4(object):
             for cout in activite.getlistCout():
                 CalculerCout(cout)
         ui.Projet.GenerateCPC()
+        ui.Projet.GenerateTFT()
+    def open_cpc(self):
+        xl = win32com.client.gencache.EnsureDispatch('Excel.Application')
+        xl.Workbooks.Open('C:\\Users\\Adam\\Documents\\GitHub\\Antofagasta\\module classe projet\\ModulePrincipal\\cpc.xlsx')
+        xl.Visible = True
+    def open_tft(self):
+        xl = win32com.client.gencache.EnsureDispatch('Excel.Application')
+        xl.Workbooks.Open('C:\\Users\\Adam\\Documents\\GitHub\\Antofagasta\\module classe projet\\ModulePrincipal\\tft.xlsx')
+        xl.Visible = True
     def resizeRevenuTables(self):
         print("Clicked")
         for activite in ui.Projet.ListeActivites:

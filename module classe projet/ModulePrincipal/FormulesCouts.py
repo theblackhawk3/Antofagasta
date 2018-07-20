@@ -21,6 +21,7 @@ def CalculerCout(cout):
         pass
     elif cout.getNom() == "Cout de marchandise achetée ":
         pass
+        
     elif cout.getNom() == "Cout d'energie, gaz":
         pass
         

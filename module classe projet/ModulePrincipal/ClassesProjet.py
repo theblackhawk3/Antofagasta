@@ -78,6 +78,7 @@ class Projet:
         self.ListeActivites = ListeActivites
         self.Horizon = Horizon
         self.CPC = CPC
+        self.pasVisualisation = ""
         self.DictParams = {"Int couts":{},
                            "Mar couts":{},
                            "Int revenus":{},
@@ -85,6 +86,7 @@ class Projet:
         self.WordRowCol = {}
         self.DictRecolte = {"Int couts":{},
                            "Mar couts":{}}
+        
         self.ProduitsFinanciers = []
         self.ChargesFinancieres = []
         self.Interets = []
@@ -311,7 +313,7 @@ class Projet:
         wb.remove(wb['Sheet'])
         wb.save("tft.xlsx")
     def GenerateCPC(self):
-        ######### Partie calcul des elements du cpc ##########
+        ######### Partie calcul des éléments du cpc ##########
         ######################################################
         # Style 1 --- A1,A2----An
         style1 = NamedStyle(name="style1")
@@ -509,7 +511,8 @@ class Projet:
         ws['A'+str(PCPC)].style = style6
         self.ResultatNet = [0]*self.Horizon
         for i in range(self.Horizon):
-            ws.cell(PCPC,i+2).value = RAI[i] - self.Impots[i] + self.Amortissements[i]
+            self.ResultatNet[i] = RAI[i] - self.Impots[i] + self.Amortissements[i]
+            ws.cell(PCPC,i+2).value = self.ResultatNet[i]
             ws.cell(PCPC,i+2).style = style6_numbers
         wb.remove(wb['Sheet'])
         wb.save("cpc.xlsx")
@@ -1121,3 +1124,301 @@ class Revenu:
     def CalculRev(self):
         CalculerRevenu(self)
         pass
+
+class Dette:    #Nouvelle classe #### Standby
+    def __init__(self, bailleur="", total=0, taux=0):
+        self.periodicite = ' '   #LIER avec inputs intérface
+        self.horizon = 0       #LIER avec inputs intérface
+        self.bailleur = bailleur      #LIER avec inputs intérface
+        self.total = total        #LIER avec inputs intérface
+        self.taux = taux           #LIER avec inputs intérface
+        self.date_debut_remboursement = 0 #LIER avec inputs interface
+        self.apport_dette = [0]*self.horizon #taille horizon, déblocages pour chaque période
+        self.amortissement_capital = [0]*self.horizon #taille horizon, capital à rembourser pour chaque période 
+
+
+
+    def interets(self): #forme simple : penser à interfaçage avec moteur de calcul de Younes
+        t = 0
+        if self.periodicite == 'Annuelle'      : t = 1   #renvoie nbr de cases à regrouper     
+        if self.periodicite == 'Semestrielle'  : t = 2        
+        if self.periodicite == 'Trimestrielle' : t = 3
+        if self.periodicite == 'Mensuelle'     : t = 12
+        l = [0]*int((self.horizon/t))
+        for i in range(int(self.date_debut_remboursement/t)+1,len(l)) :
+            l[i] = self.taux*sum(self.amortissement_capital[i:])
+        s = [0]*self.horizon
+        c = 0
+        for i in range(0,self.horizon,t):
+            s[i] = l[c]
+            c += 1
+            
+        return l    ### d = Dette(
+    
+def collect_financial_data(p): #executer par défaut 
+    
+    dictio = {}
+    
+    l = p.getListeActivites() + p.getListeActivitesSecondaires()
+    for i in l :
+        print(i.getNom())
+        
+    for i in l :
+        dictio[i.getNom()] = { 'Couts': {} , 'Revenus': {} }
+        for j in i.getlistCout() :
+            dictio[i.getNom()]['Couts'][j.getNom()] = j.getresultat()
+        for j in i.getlistRev() :
+            dictio[i.getNom()]['Revenus'][j.getNom()] = j.getresultat()
+    
+    return dictio
+
+    
+def remplir_pour_test(p,h):    #rempli les vecteurs resultat pour tester
+    for i in p.getListeActivites()+p.getListeActivitesSecondaires():
+        for j in i.getlistRev():
+            j.setResultat([0]*h)
+            
+        for j in i.getlistCout():
+            j.setResultat([0]*h)   
+    return 0        
+
+def f(x):
+    if       0 < x <= 300000  : return 0,1
+    if  300000 < x <= 1000000 : return 0,2
+    if 1000000 < x <= 5000000 : return 0,3
+    if 5000000 < x            : return 0,31
+    else                      : return 0
+    
+    
+    
+## RESULTAT D'EXPLOITATION
+    
+
+
+def tab_revenus(p): #renvoie tous les revenus /activite dans une liste de vecteurs : [Activité, p1,p2,...]
+    l = []
+    d = collect_financial_data(p)
+    for i in d :
+        for j in d[i]['Revenus']:
+            l.append([j]+d[i]['Revenus'][j])
+    ttc = l
+    tva = l
+    for i in ttc :
+        for j in ttc[i]:
+            if isinstance(ttc[i][j],float) == True :
+                ttc[i][j] = (1 + TVA(p))*l[i][j]
+    for i in tva :
+        for j in tva[i]:
+            if isinstance(tva[i][j],float) == True :
+                tva[i][j] = TVA(p)*l[i][j]
+    return (ttc,tva)
+                    
+def total_revenus(p): #renvoie un vecteur de taille horizon qui contient la somme des revenus
+    d = collect_financial_data(p);
+    h = p.getHorizon()
+    l = [0]*(h+1)
+    l[0] = "Total Revenus"
+    c = 1
+    while c < h+1 :
+        for i in d.keys() :
+            for j in d[i]['Revenus'].keys():
+                l[c] += d[i]['Revenus'][j][c-1]
+        c += 1  
+    for i in range(1,h+1):
+        l[i] = (1 + TVA(p))*l[i]
+    return l[1:]
+    
+def tab_couts(p):  #renvoie tous les couts par activite dans une liste de vecteurs : [Activité, p1,p2,...]
+    l = []
+    d = collect_financial_data(p)
+    for i in d :
+        for j in d[i]['Couts']:
+            l.append([j]+d[i]['Couts'][j])
+    for i in l :
+        for j in l[i]:
+            if isinstance(l[i][j],float) == True :
+                l[i][j] = (1 + taux(p))*l[i][j]
+    return l
+    
+def total_couts(p): #renvoie un vecteur de taille horizon qui contient la somme des couts
+    d = collect_financial_data(p);
+    h = p.getHorizon()
+    l = [0]*(h+1)
+    l[0] = "Total Couts"
+    c = 1
+    while c < h+1 :
+        for i in d.keys() :
+            for j in d[i]['Couts'].keys():
+                l[c] += d[i]['Couts'][j][c-1]    
+        c += 1    
+    return l
+          
+def resultat_d_exploitation(p):
+    l = (p.getHorizon()+1)*[0]
+    l[0] = "RESULTAT D'EXPLOITATION"
+    r = total_revenus(p)
+    c = total_couts(p)
+    for i in range(1,p.getHorizon()+1):
+        l[i] = r[i]+c[i]
+    return l[1:]
+    
+## RESULTAT FINANCIER
+
+def produit_financiers(p):
+    return p.getproduits_financiers()
+
+def charges_financieres(p):
+    return interets(p)
+    #return p.getcharges_financieres()
+    
+def amortissement_dettes(p): #les amortissements emprunteur /emprunteur + total
+    l = []
+    for i in p.getdette():
+        inf = i.getdate_debut_remboursement()
+        sup = i.getdate_maturite()
+        t = (p.getHorizon()+1)*[0]
+        t[0] = i.getbailleur()
+        t[inf+1:sup+2]=i.getamortissement()
+        l.append(t)
+    s = [0]*(p.getHorizon()+1)
+    s[0] = 'Total des amortissements'
+    for j in range(1,p.getHorizon()+1):
+        for i in l :
+            s[j] += i[j]
+    l.append(s[1:])
+    return l        
+        
+        
+        
+def interets_dettes(p):  #les interets emprunteur /emprunteur + total
+    l = []
+    for  i in p.getdette():
+        inf = i.getdate_debut_deblocage()
+        t = (p.getHorizon()+1)*[0]
+        t[inf:inf+i.getmaturite] = i.interets()
+        t[0] = i.getbailleur()
+        l.append(t)
+    s = [0]*(p.getHorizon()+1)
+    s[0] = 'Total des interets'
+    for j in range(1,p.getHorizon()+1):
+        for i in l :
+            s[j] += i[j]
+    l.append(s[1:])
+    return l
+    
+def resultat_financier(p):
+    l = ['RESULTAT FINANCIER'] + [0]*p.getHorizon()
+    for i in range(1,p.getHorizon()+1):
+        l[i] = p.getproduits_financiers()[i] - p.getcharges_financieres()[i]
+    return l[1:]
+    
+    
+## RESULTAT COURANT
+
+def resultat_courant(p):
+    l = ['RESULTAT COURANT'] + [0]*p.getHorizon()
+    exp = resultat_d_exploitation(p)
+    fin = resultat_financier(p)
+    for i in range(1,p.getHorizon()+1):
+        l[i] = exp[i] + fin[i] 
+    return l[1:]
+
+## RESULTAT NON COURANT    
+
+def produits_non_courants(p):
+    p.getproduits_non_courants()
+    
+def charges_non_courantes(p):
+    p.getcharges_non_courantes()
+ 
+def resultat_non_courant(p):
+    l = []
+    p = produits_non_courants(p)
+    c = charges_non_courantes(p)
+    for i in range(1,p.getHorizon()+1) :
+        l[i] = p[i] - c[i] 
+    return (['RESULTAT NON COURANT'] + l)[1:]
+  
+## RESULTAT AVANT IMPOTS
+
+def resultat_avant_impot(p):
+    l=['RESULTAT AVANT IMPOT'] + [0]*p.getHorizon() 
+    courant  = resultat_courant(p)
+    ncourant = resultat_non_courant(p)
+    for i in range(1,p.getHorizon()):
+        l[i] = resultat_courant(p)[i] + resultat_non_courant(p)[i]
+    return l[1:]
+  
+## FISCALITE
+          
+def IS(p,per):
+    
+    r = resutat_avant_impot(p)
+    per = p.getPeriodicite
+    
+    t = 0
+    if per == 'Annuelle'      : t = 1   #renvoie nbr de cases à regrouper     
+    if per == 'Semestrielle'  : t = 2        
+    if per == 'Trimestrielle' : t = 3
+    if per == 'Mensuelle'     : t = 12
+    
+    l = ['IS'] + [0]*((len(r)-1)/t)
+    for i in range(1,len(l)+1) :
+        for j in range(1,t) :
+            l[i] += r[(i-1)*t+1+j]
+    
+    for i in range(1,len(l)):
+        if l[i] < 0  : 
+            l[i] = l[i]*f(l[i])
+        else :
+            c = l[i]
+            for j in range(i-4,i):
+                if l[j] < 0 :
+                    if c > - l[j]  :
+                        c = c + l[j]
+                        l[j] = float('inf')
+                    else :
+                        tmp = c
+                        c = 0
+                        l[j] = l[j] + tmp
+            l[i] = c*(1-f(c))
+                      
+    return l[1:]
+    
+def IS_ajustealaperiodicite(p,per):
+    
+    IS = IS(p)
+    l = ['IS'] + [0]*p.getHorizon()
+    
+    t = 0
+    if per == 'Annuelle'      : return IS       
+    if per == 'Semestrielle'  : t = 2        #renvoie la période à laquelle il faut remettre l'IS
+    if per == 'Trimestrielle' : t = 4
+    if per == 'Mensuelle'     : t = 12
+    
+    c = 1
+    for i in range(t,len(IS),t-1):
+        l[i] = IS[c]
+        c += 1
+        
+    return l[1:]
+        
+        
+    
+    
+    
+    
+    
+def TVA(p):
+    s = p.getNom()
+    taux = 0
+    if s == "Ecole"                    : taux = 0.2
+    if s == "Promotion immobiliere"    : taux = 0.2
+    if s == "Restaurant"               : taux = 0.1
+    if s == "Industrie manufacturiere" : taux = 0.2
+    return taux
+    
+## RESULTAT NET
+
+def resultat_NET(p):
+    pass
