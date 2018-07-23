@@ -91,6 +91,7 @@ class Projet:
         self.ChargesFinancieres = []
         self.Interets = []
         self.Amortissements = []
+        self.RAI = []
         self.Impots = []
         self.ResultatNet = []
         self.FondsPropres = []
@@ -251,20 +252,29 @@ class Projet:
             ws.cell(PTFT,i+2).style = style3_numbers
         PTFT += 1
         # # # # # Fonds Propres Injectés
-        self.FondsPropres = [0]*self.Horizon
+        l = [0]*self.Horizon
         ws.cell(PTFT,1).value = "Fond Propres"
         ws.cell(PTFT,1).style = style3
+        for i in range(len(self.FondsPropres)):
+            l[i] = self.FondsPropres[i]
+        self.FondsPropres = l.copy()
         for i in range(self.Horizon):
             ws.cell(PTFT,i+2).value = self.FondsPropres[i]
             ws.cell(PTFT,i+2).style = style3_numbers
+        
         PTFT += 1
         # # # # # Dette Injectée
-        self.Dette = [0]*self.Horizon
+        l = [0]*self.Horizon
         ws.cell(PTFT,1).value = "Dette Injectée"
         ws.cell(PTFT,1).style = style3
+        
+        for i in range(len(self.Dette)):
+            l[i] = self.Dette[i]
+        self.Dette = l.copy()
         for i in range(self.Horizon):
             ws.cell(PTFT,i+2).value = self.Dette[i]
             ws.cell(PTFT,i+2).style = style3_numbers
+        
         PTFT += 1
         # # # # # IS
         ws.cell(PTFT,1).value = "IS"
@@ -490,17 +500,17 @@ class Projet:
         ###Section Resultat avant Impots
         ws['A'+str(PCPC)].value = 'RESULTAT AVANT IMPOT'
         ws['A'+str(PCPC)].style = style6
-        RAI =[0]*self.Horizon
+        self.RAI =[0]*self.Horizon
         for i in range(self.Horizon):
-            RAI[i] = TotalResultatOp[i] + ResultatFinancier[i] - self.Amortissements[i]
-            ws.cell(PCPC,i+2).value = RAI[i]
+            self.RAI[i] = TotalResultatOp[i] + ResultatFinancier[i] - self.Amortissements[i]
+            ws.cell(PCPC,i+2).value = self.RAI[i]
             ws.cell(PCPC,i+2).style =  style6_numbers
         PCPC += 1
         
         ###Section Impôts
         ws['A'+str(PCPC)].value = 'IMPÔTS'
         ws['A'+str(PCPC)].style = style2
-        self.Impots = [0]*self.Horizon
+        self.Impots = IS(self)
         for i in range(self.Horizon):
             ws.cell(PCPC,i+2).value = self.Impots[i]
             ws.cell(PCPC,i+2).style = style2_numbers
@@ -511,7 +521,7 @@ class Projet:
         ws['A'+str(PCPC)].style = style6
         self.ResultatNet = [0]*self.Horizon
         for i in range(self.Horizon):
-            self.ResultatNet[i] = RAI[i] - self.Impots[i] + self.Amortissements[i]
+            self.ResultatNet[i] = self.RAI[i] - self.Impots[i] + self.Amortissements[i]
             ws.cell(PCPC,i+2).value = self.ResultatNet[i]
             ws.cell(PCPC,i+2).style = style6_numbers
         wb.remove(wb['Sheet'])
@@ -1183,10 +1193,10 @@ def remplir_pour_test(p,h):    #rempli les vecteurs resultat pour tester
     return 0        
 
 def f(x):
-    if       0 < x <= 300000  : return 0,1
-    if  300000 < x <= 1000000 : return 0,2
-    if 1000000 < x <= 5000000 : return 0,3
-    if 5000000 < x            : return 0,31
+    if       0 < x <= 300000  : return 0.1
+    if  300000 < x <= 1000000 : return 0.2
+    if 1000000 < x <= 5000000 : return 0.3
+    if 5000000 < x            : return 0.31
     else                      : return 0
     
     
@@ -1350,29 +1360,35 @@ def resultat_avant_impot(p):
     return l[1:]
   
 ## FISCALITE
-          
-def IS(p,per):
-    
-    r = resutat_avant_impot(p)
-    per = p.getPeriodicite
+#### Début modif 1 ####          
+def IS(p):
+    r = p.RAI
+    per = p.pasVisualisation
     
     t = 0
-    if per == 'Annuelle'      : t = 1   #renvoie nbr de cases à regrouper     
-    if per == 'Semestrielle'  : t = 2        
-    if per == 'Trimestrielle' : t = 3
-    if per == 'Mensuelle'     : t = 12
+    if per == 'A'      : t = 1   #renvoie nbr de cases à regrouper     
+    if per == 'S'  : t = 2        
+    if per == 'T' : t = 4
+    if per == 'M'     : t = 12
     
-    l = ['IS'] + [0]*((len(r)-1)/t)
-    for i in range(1,len(l)+1) :
-        for j in range(1,t) :
-            l[i] += r[(i-1)*t+1+j]
+    l = [0]*int(roundN(((len(r))/t)))
+    for i in range(0,len(l)) :
+        for j in range(0,t) :
+            l[i] += r[i*t+j]
     
-    for i in range(1,len(l)):
+    s = l.copy()
+    for i in range(0,len(l)):
         if l[i] < 0  : 
-            l[i] = l[i]*f(l[i])
+            s[i] = l[i]*f(l[i])
         else :
             c = l[i]
-            for j in range(i-4,i):
+            n=0
+            if i >=4:
+                n = 4
+            else:
+                n=i
+            for j in range(i-n,i):
+                print(l[j])
                 if l[j] < 0 :
                     if c > - l[j]  :
                         c = c + l[j]
@@ -1381,10 +1397,14 @@ def IS(p,per):
                         tmp = c
                         c = 0
                         l[j] = l[j] + tmp
-            l[i] = c*(1-f(c))
-                      
-    return l[1:]
+                
+                    
+            s[i] = c*(1-f(c))
+                        
+    return(s)
+
     
+##### Fin Modif 1 #######
 def IS_ajustealaperiodicite(p,per):
     
     IS = IS(p)
@@ -1422,3 +1442,9 @@ def TVA(p):
 
 def resultat_NET(p):
     pass
+    
+def roundN(p):
+    if p != int(p):
+        return int(p) +1
+    else:
+        return p

@@ -1088,6 +1088,13 @@ class Ui_Form_4(object):
             Revenu_Cost.DicoFormesMarche[cle1][cle2] = int(line)
         
 def SendTables():
+    ui.Projet.FondsPropres = [0]*(ui.tableWidget_2.columnCount()-2)
+    ui.Projet.CCA = [0]*(ui.tableWidget_2.columnCount()-2)
+    ui.Projet.Dette = [0]*(ui.tableWidget_2.columnCount()-2)
+    for i in range(ui.tableWidget_2.columnCount()-2):
+        ui.Projet.FondsPropres[i] = int(ui.tableWidget_2.item(2,i+2).text())
+        ui.Projet.CCA[i]          = int(ui.tableWidget_2.item(3,i+2).text())
+        ui.Projet.Dette[i]        = int(ui.tableWidget_2.item(4,i+2).text())
     ui2.tableWidget.setColumnCount(ui.tableWidget.columnCount())
     ui2.tableWidget.setRowCount(ui.tableWidget.rowCount()+ui.tableWidget_2.rowCount()+4)
     for i in range(ui2.tableWidget.rowCount()):
