@@ -134,7 +134,7 @@ class Ui_Form(QWidget):
         self.Activites = []
         self.ActivitesSecondaires = []
         #Le code D'initialisation des données et des liaisons
-        self.ListeProjets = ['----------','Ecole Secondaire','Clinique','Restaurant','Projet Immobilier']
+        self.ListeProjets = ['----------','Ecole','Clinique','Restaurant','Projet Immobilier','Usine']
         self.ListePas = ['Mois','Trimestre','Semestre','Année']
         self.pushButton.clicked.connect(self.on_confirm_click)
         self.comboBox.addItems(self.ListeProjets)
@@ -307,8 +307,9 @@ class Ui_Form(QWidget):
         self.tableWidget_3.setItem(1,0,QTableWidgetItem("Maturite"))
         self.tableWidget_3.setItem(2,0,QTableWidgetItem("Taux"))
         self.tableWidget_3.setItem(3,0,QTableWidgetItem("Periode de debut"))
-        self.tableWidget_3.setItem(4,0,QTableWidgetItem("Amortissement Capital"))
-        
+        self.tableWidget_3.setItem(1,1,QTableWidgetItem("0"))
+        self.tableWidget_3.setItem(2,1,QTableWidgetItem("0"))
+        self.tableWidget_3.setItem(3,1,QTableWidgetItem("0"))
         self.tableWidget_3.move(0,0)
         
     def clicked_add_invest(self):
@@ -563,7 +564,6 @@ class Ui_Form_3(object):
         
         for i in ListeCharges:
             self.comboBox_c.addItem(i)
-    
     
     def details_clicked(self):
         for i in reversed(range(self.layout_SArea.count())): 
@@ -976,6 +976,8 @@ class Ui_Form_4(object):
                         HorizentalLayout.addWidget(lineEdit)
                         self.verticalLayout.addLayout(HorizentalLayout)
                         self.verticalLayout.addStretch(1)    
+            
+            
             #Modification des couts
             for cout in activite.getlistCout():
                 labelCout = QtWidgets.QLabel()
@@ -1095,21 +1097,37 @@ def SendTables():
         ui.Projet.FondsPropres[i] = int(ui.tableWidget_2.item(2,i+2).text())
         ui.Projet.CCA[i]          = int(ui.tableWidget_2.item(3,i+2).text())
         ui.Projet.Dette[i]        = int(ui.tableWidget_2.item(4,i+2).text())
+    ui.Projet.InitialiserDette()
+    ui.Projet.DetteObj.horizon = int(ui.tableWidget_3.item(1,1).text())
+    ui.Projet.DetteObj.total = sum(ui.Projet.Dette)
+    ui.Projet.DetteObj.taux = float(ui.tableWidget_3.item(2,1).text())
+    ui.Projet.DetteObj.date_debut_remboursement = int(ui.tableWidget_3.item(3,1).text())
+    ui.Projet.DetteObj.periodicite = "A"
+    ui.Projet.DetteObj.apport_dette = [0]*ui.Projet.Horizon
+    # for i in range(ui.tableWidget_2.columnCount()-2):
+    #     ui.Projet.DetteObj.apport_dette[i] = int(ui.tableWidget_2.item(4,i+2).text())
+    # print(ui.Projet.DetteObj.__dict__)
+    
     ui2.tableWidget.setColumnCount(ui.tableWidget.columnCount())
     ui2.tableWidget.setRowCount(ui.tableWidget.rowCount()+ui.tableWidget_2.rowCount()+4)
     for i in range(ui2.tableWidget.rowCount()):
         for j in range(ui2.tableWidget.columnCount()):
             ui2.tableWidget.setItem(i,j,QTableWidgetItem(""))
-    
-    for i in range(1,ui.tableWidget.rowCount()-1):
+
+    ui.Projet.ListeInvest=[]
+    print(ui.Projet.ListeInvest)
+    for i in range(2,ui.tableWidget.rowCount()-1):
         ui2.tableWidget.setItem(i,0,QTableWidgetItem(ui.tableWidget.item(i,0).text()))
-        #ui2.tableWidget.item(i,0).setBackground(QColor("grey"))
-        #ui2.tableWidget.item(i,0).setForeground(QColor("white"))
+        print(ui.tableWidget.item(i,0).text())
+    for i in range(2,ui.tableWidget.rowCount()-1):
+        ui.Projet.ListeInvest.append([ui.tableWidget.item(i,0).text()])
         
-    for i in range(1,ui.tableWidget.rowCount()-1):
+    for i in range(2,ui.tableWidget.rowCount()-1):
         for j in range(2,int(ui.lineEdit.text())+2):
             ui2.tableWidget.setItem(i,j-1,QTableWidgetItem(ui.tableWidget.item(i,j).text()))
+            ui.Projet.ListeInvest[i-2].append(int(ui.tableWidget.item(i,j).text()))
 
+    # print(np.array(L))
     
     ui2.tableWidget.setItem(ui.tableWidget.rowCount()-1,0,QTableWidgetItem("Total"))
     
@@ -1190,6 +1208,19 @@ def go_to_page3():
     window3.show()
 
 def go_to_page4():
+    ## Modif 1 Filtrage des couts ##
+    root = ui3.listWidget_2.invisibleRootItem()
+    CorbeilleCouts = []
+    for i in range(root.childCount()):
+        for j in range(root.child(i).childCount()):
+            if root.child(i).child(j).checkState(0) == 0:
+                CorbeilleCouts.append((root.child(i).text(0),root.child(i).child(j).text(0)))
+    for ActivCout in CorbeilleCouts:
+        for activite in ui.Projet.ListeActivites:
+            for cout in activite.getlistCout():
+                if cout.getNom() == ActivCout[1] and activite.getNom() == ActivCout[0]:
+                    activite.listCout.remove(cout)
+    ## Fin Modif 1 ##
     window3.hide()
     global ui4
     ui4 = Ui_Form_4()

@@ -32,7 +32,7 @@ def excel_dfs(Dict, file_name, spaces):
         WordRowCol[sheet] = []
         DictRecolte[sheet] = {}
         for activite in Dict[sheet].keys():
-            indexAct+=(max([a[1] for a in Dict[sheet][activite].values()])//2) + 2
+            indexAct+=max([a[1] for a in Dict[sheet][activite].values()])+3
             row = 5
             WordRowCol[sheet].append((activite,row-4,indexAct+2,fontsDict['Activite']))
             DictRecolte[sheet][activite] = {}
@@ -48,7 +48,8 @@ def excel_dfs(Dict, file_name, spaces):
     writer.save()
     #Fin ecritre données
     wb = load_workbook('Parametres.xlsx')
-    for sheet in WordRowCol.keys():
+    # for sheet in WordRowCol.keys():
+    for sheet in wb.sheetnames:
         ws = wb[sheet]
         for i in WordRowCol[sheet]:
             ws.cell(i[1],i[2]).value = i[0]
@@ -100,7 +101,12 @@ class Projet:
         self.RemboursementDette = []
         self.FluxTresorerie = []
         self.FluxTresorerieAcc = []
+        self.DetteObj = []
+        self.ListeInvest = []
         
+    def InitialiserDette(self):
+        self.DetteObj = Dette()
+    
     def PrepareExcelInput(self):
         for activite in self.ListeActivites:
             for key in self.DictParams.keys():
@@ -120,31 +126,34 @@ class Projet:
     
     def GetExcelInput(self):
         wb = load_workbook('Parametres.xlsx',data_only=True)
-        wsIC = wb['Int couts']
-        wsMC = wb['Mar couts']
-        wsIR = wb['Int revenus']
-        wsMR = wb['Mar revenus']
+        # wsIC = wb['Int couts']
+        # wsMC = wb['Mar couts']
+        # wsIR = wb['Int revenus']
+        # wsMR = wb['Mar revenus']
         for activite in self.ListeActivites:
             for cout in activite.getlistCout():
-                for Tableau in cout.getListTableaux():
-                    CornerRow = self.DictRecolte['Int couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][0]+1
-                    CornerColumn = self.DictRecolte['Int couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][1]+1
-                    Tableau.setTableauDonnees(np.array([[wsIC.cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
-                for Tableau in cout.getListTableauxMarche():
-                    CornerRow = self.DictRecolte['Mar couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][0]+1
-                    CornerColumn = self.DictRecolte['Mar couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][1]+1
-                    Tableau.setTableauDonnees(np.array([[wsMC.cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
-                    ######################
+                if len(cout.getListTableaux()) != 0:
+                    for Tableau in cout.getListTableaux():
+                        CornerRow = self.DictRecolte['Int couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][0]+1
+                        CornerColumn = self.DictRecolte['Int couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][1]+1
+                        Tableau.setTableauDonnees(np.array([[wb['Int couts'].cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
+                if len(cout.getListTableauxMarche()) != 0:
+                    for Tableau in cout.getListTableauxMarche():
+                        CornerRow = self.DictRecolte['Mar couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][0]+1
+                        CornerColumn = self.DictRecolte['Mar couts'][activite.getNom()][cout.getNom()][Tableau.getTitre()][1]+1
+                        Tableau.setTableauDonnees(np.array([[wb['Mar couts'].cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
+                        ######################
             for revenu in activite.getlistRev():
-                for Tableau in revenu.getListTableaux():
-                    CornerRow = self.DictRecolte['Int revenus'][activite.getNom()][revenu.getNom()][Tableau.getTitre()][0]+1
-                    CornerColumn = self.DictRecolte['Int revenus'][activite.getNom()][revenu.getNom()][Tableau.getTitre()][1]+1
-                    Tableau.setTableauDonnees(np.array([[wsIR.cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
-                
-                for Tableau in revenu.getListTableauxMarche():
-                    CornerRow = self.DictRecolte['Mar revenus'][activite.getNom()][revenu.getNom()][Tableau.getTitre()][0]+1
-                    CornerColumn = self.DictRecolte['Mar revenus'][activite.getNom()][revenu.getNom()][Tableau.getTitre()][1]+1
-                    Tableau.setTableauDonnees(np.array([[wsMR.cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
+                if len(revenu.getListTableaux()) != 0:
+                    for Tableau in revenu.getListTableaux():
+                        CornerRow = self.DictRecolte['Int revenus'][activite.getNom()][revenu.getNom()][Tableau.getTitre()][0]+1
+                        CornerColumn = self.DictRecolte['Int revenus'][activite.getNom()][revenu.getNom()][Tableau.getTitre()][1]+1
+                        Tableau.setTableauDonnees(np.array([[wb['Int revenus'].cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
+                if len(revenu.getListTableauxMarche()) != 0:   
+                    for Tableau in revenu.getListTableauxMarche():
+                        CornerRow = self.DictRecolte['Mar revenus'][activite.getNom()][revenu.getNom()][Tableau.getTitre()][0]+1
+                        CornerColumn = self.DictRecolte['Mar revenus'][activite.getNom()][revenu.getNom()][Tableau.getTitre()][1]+1
+                        Tableau.setTableauDonnees(np.array([[wb['Mar revenus'].cell(i,j).value for j in range(CornerColumn,CornerColumn + Tableau.Taille[1])] for i in range(CornerRow,CornerRow + Tableau.Taille[0])]))
                     
 
     
@@ -243,73 +252,144 @@ class Projet:
         for i in range(self.Horizon):
             ws.cell(3,i+2).value = 'A'+str(i+1)
             ws.cell(3,i+2).style = style1
-        #### Resultat Net
+       
         PTFT = 4
-        ws.cell(PTFT,1).value = "Resultat Net"
-        ws.cell(PTFT,1).style = style3
+        ws.cell(PTFT,1).value = "Flux du Projet"
+        ws.cell(PTFT,1).style = style2
         for i in range(self.Horizon):
-            ws.cell(PTFT,i+2).value = self.ResultatNet[i]
-            ws.cell(PTFT,i+2).style = style3_numbers
+            ws.cell(PTFT,i+2).value = ""
+            ws.cell(PTFT,i+2).style = style2
+        PTFT += 1
+        #### Resultat Avant Impot
+        ws.cell(PTFT,1).value = "Resultat Avant Impôts"
+        ws.cell(PTFT,1).style = style4
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = self.RAI[i]
+            ws.cell(PTFT,i+2).style = style4_numbers
+        PTFT += 1
+        # # # # # IS
+        ws.cell(PTFT,1).value = "IS"
+        ws.cell(PTFT,1).style = style4
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = self.Impots[i]
+            ws.cell(PTFT,i+2).style = style4_numbers
+        PTFT += 1
+        # # # # # Ammortissement
+        ws.cell(PTFT,1).value = "Amortissement"
+        ws.cell(PTFT,1).style = style4
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = 0
+            ws.cell(PTFT,i+2).style = style4_numbers
+        PTFT += 1
+        # # # # # Variation BFR
+        ws.cell(PTFT,1).value = "Variation BFR"
+        ws.cell(PTFT,1).style = style4
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = 0
+            ws.cell(PTFT,i+2).style = style4_numbers
+        PTFT += 1
+        ##### Flux Invesstissement
+        ws.cell(PTFT,1).value = "Flux d'Invesstissement"
+        ws.cell(PTFT,1).style = style2
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = ""
+            ws.cell(PTFT,i+2).style = style2
+        PTFT += 1
+        for i in range(len(self.ListeInvest)):
+            ws.cell(PTFT,1).value = self.ListeInvest[i][0]
+            ws.cell(PTFT,1).style = style4
+            for j in range(1,self.Horizon):
+                if j < len(self.ListeInvest[i]):
+                    ws.cell(PTFT,j+1).value = self.ListeInvest[i][j]
+                    ws.cell(PTFT,j+1).style = style4_numbers 
+                else:
+                    ws.cell(PTFT,j+1).value = 0
+                    self.ListeInvest[i].append(0)
+                    ws.cell(PTFT,j+1).style = style4_numbers 
+            PTFT += 1
+
+        ##### Flux de financement
+        ws.cell(PTFT,1).value = "Flux de financement"
+        ws.cell(PTFT,1).style = style2
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = ""
+            ws.cell(PTFT,i+2).style = style2
         PTFT += 1
         # # # # # Fonds Propres Injectés
         l = [0]*self.Horizon
         ws.cell(PTFT,1).value = "Fond Propres"
-        ws.cell(PTFT,1).style = style3
+        ws.cell(PTFT,1).style = style4
         for i in range(len(self.FondsPropres)):
             l[i] = self.FondsPropres[i]
         self.FondsPropres = l.copy()
         for i in range(self.Horizon):
             ws.cell(PTFT,i+2).value = self.FondsPropres[i]
-            ws.cell(PTFT,i+2).style = style3_numbers
+            ws.cell(PTFT,i+2).style = style4_numbers
         
         PTFT += 1
-        # # # # # Dette Injectée
+        # # # # # Levée de Dette
         l = [0]*self.Horizon
-        ws.cell(PTFT,1).value = "Dette Injectée"
-        ws.cell(PTFT,1).style = style3
+        ws.cell(PTFT,1).value = "Levée de Dette"
+        ws.cell(PTFT,1).style = style4
         
         for i in range(len(self.Dette)):
             l[i] = self.Dette[i]
         self.Dette = l.copy()
         for i in range(self.Horizon):
             ws.cell(PTFT,i+2).value = self.Dette[i]
-            ws.cell(PTFT,i+2).style = style3_numbers
+            ws.cell(PTFT,i+2).style = style4_numbers
         
         PTFT += 1
-        # # # # # IS
-        ws.cell(PTFT,1).value = "IS"
-        ws.cell(PTFT,1).style = style3
+        # # # # Apport en CCA
+        ws.cell(PTFT,1).value = "Apport en CCA"
+        ws.cell(PTFT,1).style = style4
         for i in range(self.Horizon):
-            ws.cell(PTFT,i+2).value = self.Impots[i]
-            ws.cell(PTFT,i+2).style = style3_numbers
+            ws.cell(PTFT,i+2).value = 0
+            ws.cell(PTFT,i+2).style = style4_numbers
         PTFT += 1
         # # # # # Remboursement de la dette (Capital)
         self.RemboursementDette = [0]*self.Horizon
         ws.cell(PTFT,1).value = "Remboursement de la dette"
-        ws.cell(PTFT,1).style = style3
+        ws.cell(PTFT,1).style = style4
         for i in range(self.Horizon):
             ws.cell(PTFT,i+2).value = self.RemboursementDette[i]
-            ws.cell(PTFT,i+2).style = style3_numbers
+            ws.cell(PTFT,i+2).style = style4_numbers
         PTFT += 1
-        # # # # # Interets financiers
-        ws.cell(PTFT,1).value = "Interets financiers"
-        ws.cell(PTFT,1).style = style3
+        # # # # # Remboursement du CCA
+        self.RemboursementCCA = [0]*self.Horizon
+        ws.cell(PTFT,1).value = "Remboursement CCA"
+        ws.cell(PTFT,1).style = style4
         for i in range(self.Horizon):
-            ws.cell(PTFT,i+2).value = self.Interets[i]
-            ws.cell(PTFT,i+2).style = style3_numbers
+            ws.cell(PTFT,i+2).value = self.RemboursementDette[i]
+            ws.cell(PTFT,i+2).style = style4_numbers
         PTFT += 1
+        # # # # # Distribution de dividendes
+        self.RemboursementDividendes = [0]*self.Horizon
+        ws.cell(PTFT,1).value = "Distribution Dividendes"
+        ws.cell(PTFT,1).style = style4
+        for i in range(self.Horizon):
+            ws.cell(PTFT,i+2).value = self.RemboursementDividendes[i]
+            ws.cell(PTFT,i+2).style = style4_numbers
+        PTFT += 1
+        # # # # # # Interets financiers
+        # ws.cell(PTFT,1).value = "Interets financiers"
+        # ws.cell(PTFT,1).style = style3
+        # for i in range(self.Horizon):
+        #     ws.cell(PTFT,i+2).value = self.Interets[i]
+        #     ws.cell(PTFT,i+2).style = style3_numbers
+        # PTFT += 1
         # # # # # Flux de trésorerie
         ws.cell(PTFT,1).value = "Flux de trésorerie"
-        ws.cell(PTFT,1).style = style3
+        ws.cell(PTFT,1).style = style2
         self.FluxTresorerie = [0]*self.Horizon
         for i in range(self.Horizon):
-            self.FluxTresorerie[i] = self.ResultatNet[i] + self.FondsPropres[i] + self.Dette[i] -self.Impots[i] - self.Interets[i] - self.RemboursementDette[i]
+            self.FluxTresorerie[i] = self.RAI[i] + self.FondsPropres[i] + self.Dette[i] -self.Impots[i] - self.Interets[i] - self.RemboursementDette[i]
             ws.cell(PTFT,i+2).value = self.FluxTresorerie[i]
-            ws.cell(PTFT,i+2).style = style3_numbers
+            ws.cell(PTFT,i+2).style = style2_numbers
         PTFT += 1
         # # # # # Trésorerie accumulée
         ws.cell(PTFT,1).value = "Trésorerie Accumulée"
-        ws.cell(PTFT,1).style = style3
+        ws.cell(PTFT,1).style = style2
         self.FluxTresorerieAcc = [0]*self.Horizon
         for i in range(self.Horizon):
             if i == 0:
@@ -318,7 +398,7 @@ class Projet:
             else:
                 self.FluxTresorerieAcc[i] = self.FluxTresorerieAcc[i-1] + self.FluxTresorerie[i]
                 ws.cell(PTFT,i+2).value = self.FluxTresorerieAcc[i]
-            ws.cell(PTFT,i+2).style = style3_numbers
+            ws.cell(PTFT,i+2).style = style2_numbers
         PTFT += 1
         wb.remove(wb['Sheet'])
         wb.save("tft.xlsx")
@@ -521,7 +601,7 @@ class Projet:
         ws['A'+str(PCPC)].style = style6
         self.ResultatNet = [0]*self.Horizon
         for i in range(self.Horizon):
-            self.ResultatNet[i] = self.RAI[i] - self.Impots[i] + self.Amortissements[i]
+            self.ResultatNet[i] = self.RAI[i] - self.Impots[i]
             ws.cell(PCPC,i+2).value = self.ResultatNet[i]
             ws.cell(PCPC,i+2).style = style6_numbers
         wb.remove(wb['Sheet'])
@@ -998,13 +1078,13 @@ class Revenu:
         #Au préalable necessite le nom du cout, l'horizon, SaisieStartCol
         wb = load_workbook("References.xlsx")
         ws=wb['Rev x Tableau']
-        for col in ws.iter_cols(min_row=2,min_col=3, max_col=12, max_row=2):
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=ws.max_column, max_row=2):
             for cell in col:
                 if (cell.value == self.Nom):
                     coltosearch = cell.col_idx
         #Liste temporaire occupant les titres des Tableaux de saisie
         Titres = []
-        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=24):
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=ws.max_row):
             for cell in row:
                 if cell.value == "x" :
                     if ws['B'+str(cell.row)].value == 'int':
@@ -1014,7 +1094,7 @@ class Revenu:
         Formulaire = []
         for j in Titres:
             self.DicoFormes[j] ={}
-            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=23, max_row=2):
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=ws.max_column, max_row=2):
                 for cell in col:
                     if (cell.value == j):
                         Questions = [j]
@@ -1045,14 +1125,14 @@ class Revenu:
     def SaisieMarche(self):
         wb = load_workbook("References.xlsx")
         ws=wb['Rev x Tableau']
-        for col in ws.iter_cols(min_row=2,min_col=3, max_col=12, max_row=2):
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=ws.max_column, max_row=2):
             for cell in col:
                 if (cell.value == self.Nom):
                     coltosearch = cell.col_idx
         #Liste temporaire occupant les titres des Tableaux de saisie
         Titres = []
         print(Titres)
-        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=24):
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=ws.max_row):
             for cell in row:
                 if cell.value == 'x':
                     if ws['B'+str(cell.row)].value == 'ext':
@@ -1080,7 +1160,7 @@ class Revenu:
     def SaisieMarche_1(self):
         wb = load_workbook("References.xlsx")
         ws=wb['Rev x Tableau']
-        for col in ws.iter_cols(min_row=2,min_col=3, max_col=12, max_row=2):
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=ws.max_column, max_row=2):
             for cell in col:
                 if (cell.value == self.Nom):
                     coltosearch = cell.col_idx
@@ -1088,7 +1168,7 @@ class Revenu:
         Titres = []
         print(Titres)
         Formulaire = []
-        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=24):
+        for row in ws.iter_rows(min_row=2,min_col=coltosearch, max_col=coltosearch, max_row=ws.max_row):
             for cell in row:
                 if cell.value == 'x':
                     if ws['B'+str(cell.row)].value == 'ext':
@@ -1097,7 +1177,7 @@ class Revenu:
         wsTableau = wb['Tableau x Features rev']
         for j in Titres:
             self.DicoFormesMarche[j] ={}
-            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=23, max_row=2):
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=ws.max_column, max_row=2):
                 for cell in col:
                     if (cell.value == j):
                         Questions = [j]
@@ -1150,10 +1230,10 @@ class Dette:    #Nouvelle classe #### Standby
 
     def interets(self): #forme simple : penser à interfaçage avec moteur de calcul de Younes
         t = 0
-        if self.periodicite == 'Annuelle'      : t = 1   #renvoie nbr de cases à regrouper     
-        if self.periodicite == 'Semestrielle'  : t = 2        
-        if self.periodicite == 'Trimestrielle' : t = 3
-        if self.periodicite == 'Mensuelle'     : t = 12
+        if self.periodicite == 'A'      : t = 1   #renvoie nbr de cases à regrouper     
+        if self.periodicite == 'S'  : t = 2        
+        if self.periodicite == 'T' : t = 3
+        if self.periodicite == 'M'     : t = 12
         l = [0]*int((self.horizon/t))
         for i in range(int(self.date_debut_remboursement/t)+1,len(l)) :
             l[i] = self.taux*sum(self.amortissement_capital[i:])
@@ -1399,7 +1479,7 @@ def IS(p):
                         l[j] = l[j] + tmp
                 
                     
-            s[i] = c*(1-f(c))
+            s[i] = c*f(c)
                         
     return(s)
 
