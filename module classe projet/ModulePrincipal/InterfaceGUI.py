@@ -811,7 +811,7 @@ class Ui_Form_3(object):
 class Ui_Form_4(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(878, 525)
+        Form.resize(878, 625)
         self.groupBox = QtWidgets.QGroupBox(Form)
         self.groupBox.setGeometry(QtCore.QRect(20, 50, 400, 241))
         self.groupBox.setTitle("Informations sur les Revenus")
@@ -926,7 +926,7 @@ class Ui_Form_4(object):
                 revenu.Horizon = ui.Projet.Horizon
             for cost in activite.getlistCout():
                 cost.Horizon = ui.Projet.Horizon
-                
+            # Modif Unicité Revenus
             for revenu in activite.getlistRev():
                 labelRevenu = QtWidgets.QLabel()
                 IndexActivite = str(ui.Projet.ListeActivites.index(activite)+1)
@@ -936,49 +936,22 @@ class Ui_Form_4(object):
                 labelRevenu.setMargin(5)
                 self.verticalLayout.addWidget(labelRevenu)
                 self.verticalLayout.addStretch(1)
-                listeQuestions = revenu.SaisieIntrinseque_1()
-                for question in listeQuestions:
-                    titreTableau = QtWidgets.QLabel()
-                    titreTableau.setText(str(question[0]))
-                    titreTableau.setFont(FontTitre)
-                    titreTableau.setMargin(7)
-                    self.verticalLayout.addWidget(titreTableau)
-                    for i in range(1,len(question)):
-                        HorizentalLayout = QHBoxLayout()
-                        label = QLabel()
-                        label.setText(question[i][1])
-                        label.setMargin(5)
-                        lineEdit = QLineEdit()
-                        print(revenu.DicoFormes[question[0]][question[i][0]])
-                        lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[i][0],arg4="Int",arg5=revenu: self.assign_field_to_value(arg1,arg2,arg3,arg4,arg5))
-                        lineEdit.setObjectName(question[i][0]+str(i))
-                        HorizentalLayout.addWidget(label)
-                        HorizentalLayout.addWidget(lineEdit)
-                        self.verticalLayout.addLayout(HorizentalLayout)
-                        self.verticalLayout.addStretch(1)
-                listeQuestions = revenu.SaisieMarche_1()
-                for question in listeQuestions:
-                    titreTableau = QtWidgets.QLabel()
-                    titreTableau.setText(str(question[0]))
-                    titreTableau.setFont(FontTitre)
-                    titreTableau.setMargin(7)
-                    self.verticalLayout.addWidget(titreTableau)
-                    for i in range(1,len(question)):
-                        HorizentalLayout = QHBoxLayout()
-                        label = QLabel()
-                        label.setText(question[i][1])
-                        label.setMargin(5)
-                        lineEdit = QLineEdit()
-                        print(revenu.DicoFormesMarche[question[0]][question[i][0]])
-                        lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[i][0],arg4="Mar",arg5=revenu: self.assign_field_to_value(arg1,arg2,arg3,arg4,arg5))
-                        lineEdit.setObjectName(question[i][0]+str(i))
-                        HorizentalLayout.addWidget(label)
-                        HorizentalLayout.addWidget(lineEdit)
-                        self.verticalLayout.addLayout(HorizentalLayout)
-                        self.verticalLayout.addStretch(1)    
+                listeQuestions = revenu.SaisieIntrinseque_1()+revenu.SaisieMarche_1()
+                UniqueQuestions = unifyQuestions(listeQuestions)
+                print(UniqueQuestions)
+                for question in UniqueQuestions:
+                    HorizentalLayout = QHBoxLayout()
+                    label = QLabel()
+                    label.setText(question[1][1])
+                    label.setMargin(5)
+                    lineEdit = QLineEdit()
+                    lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[1][0],arg4="Int",arg5=revenu: self.assign_field_to_value_1(arg1,arg2,arg3,arg4,arg5))
+                    HorizentalLayout.addWidget(label)
+                    HorizentalLayout.addWidget(lineEdit)
+                    self.verticalLayout.addLayout(HorizentalLayout)
+                    self.verticalLayout.addStretch(1)
             
-            
-            #Modification des couts
+            #Modif Unicité des couts
             for cout in activite.getlistCout():
                 labelCout = QtWidgets.QLabel()
                 IndexActivite = str(ui.Projet.ListeActivites.index(activite)+1)
@@ -988,57 +961,30 @@ class Ui_Form_4(object):
                 labelCout.setMargin(5)
                 self.verticalLayout_2.addWidget(labelCout)
                 self.verticalLayout_2.addStretch(1)
-                listeQuestions = cout.SaisieIntrinseque_1()
-                for question in listeQuestions:
-                    titreTableau = QtWidgets.QLabel()
-                    titreTableau.setText(str(question[0]))
-                    titreTableau.setFont(FontTitre)
-                    titreTableau.setMargin(7)
-                    self.verticalLayout_2.addWidget(titreTableau)
-                    for i in range(1,len(question)):
-                        HorizentalLayout = QHBoxLayout()
-                        label = QLabel()
-                        label.setText(question[i][1])
-                        label.setMargin(5)
-                        lineEdit = QLineEdit()
-                        lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[i][0],arg4="Int",arg5=cout: self.assign_field_to_value(arg1,arg2,arg3,arg4,arg5))
-                        lineEdit.setObjectName(question[i][0]+str(i))
-                        HorizentalLayout.addWidget(label)
-                        HorizentalLayout.addWidget(lineEdit)
-                        self.verticalLayout_2.addLayout(HorizentalLayout)
-                        self.verticalLayout_2.addStretch(1)
-                listeQuestions = cout.SaisieMarche_1()
-                for question in listeQuestions:
-                    titreTableau = QtWidgets.QLabel()
-                    titreTableau.setText(str(question[0]))
-                    titreTableau.setFont(FontTitre)
-                    titreTableau.setMargin(7)
-                    self.verticalLayout_2.addWidget(titreTableau)
-                    for i in range(1,len(question)):
-                        HorizentalLayout = QHBoxLayout()
-                        label = QLabel()
-                        label.setText(question[i][1])
-                        label.setMargin(5)
-                        lineEdit = QLineEdit()
-                        print(cout.DicoFormesMarche[question[0]][question[i][0]])
-                        lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[i][0],arg4="Mar",arg5=cout: self.assign_field_to_value(arg1,arg2,arg3,arg4,arg5))
-                        lineEdit.setObjectName(question[i][0]+str(i))
-                        HorizentalLayout.addWidget(label)
-                        HorizentalLayout.addWidget(lineEdit)
-                        self.verticalLayout_2.addLayout(HorizentalLayout)
-                        self.verticalLayout_2.addStretch(1)     
-            #Fin de modification des couts
-
-            button = QPushButton()
-            button.setText("Valider")
-            self.verticalLayout.addWidget(button)
+                listeQuestions = cout.SaisieIntrinseque_1()+cout.SaisieMarche_1()
+                print(listeQuestions)
+                UniqueQuestions = unifyQuestions(listeQuestions)
+                for question in UniqueQuestions:
+                    HorizentalLayout = QHBoxLayout()
+                    label = QLabel()
+                    label.setText(question[1][1])
+                    label.setMargin(5)
+                    lineEdit = QLineEdit()
+                    lineEdit.textChanged.connect(lambda arg1 = lineEdit.text(),arg2=question[0],arg3=question[1][0],arg4="Int",arg5=cout: self.assign_field_to_value_1(arg1,arg2,arg3,arg4,arg5))
+                    HorizentalLayout.addWidget(label)
+                    HorizentalLayout.addWidget(lineEdit)
+                    self.verticalLayout_2.addLayout(HorizentalLayout)
+                    self.verticalLayout_2.addStretch(1)
+            self.button = QPushButton()
+            self.button.setText("Valider")
+            self.verticalLayout.addWidget(self.button)
             self.verticalLayout.addStretch(1)
-            button.clicked.connect(self.resizeRevenuTables)
+            self.button.clicked.connect(self.resizeRevenuTables)
             
-            button_2 = QPushButton()
-            button_2.setText("Valider")
-            button_2.clicked.connect(self.resizeCostTables)
-            self.verticalLayout_2.addWidget(button_2)
+            self.button_2 = QPushButton()
+            self.button_2.setText("Valider")
+            self.button_2.clicked.connect(self.resizeCostTables)
+            self.verticalLayout_2.addWidget(self.button_2)
             self.verticalLayout_2.addStretch(1)
             
             
@@ -1069,6 +1015,7 @@ class Ui_Form_4(object):
         xl.Visible = True
     def resizeRevenuTables(self):
         print("Clicked")
+        self.button.setEnabled(False)
         for activite in ui.Projet.ListeActivites:
             for revenu in activite.getlistRev():
                 revenu.resizeTableaux()
@@ -1076,10 +1023,12 @@ class Ui_Form_4(object):
     
     def resizeCostTables(self):
         print("Clicked")
+        self.button_2.setEnabled(False)
         for activite in ui.Projet.ListeActivites:
             for cout in activite.getlistCout():
                 cout.resizeTableaux()
                 cout.resizeTableauxMarche()
+        
     def assign_field_to_value(self,line,cle1,cle2,type,Revenu_Cost):
         print(line)
         print(cle1)
@@ -1088,7 +1037,17 @@ class Ui_Form_4(object):
             Revenu_Cost.DicoFormes[cle1][cle2] = int(line)
         else:
             Revenu_Cost.DicoFormesMarche[cle1][cle2] = int(line)
-        
+    
+    def assign_field_to_value_1(self,line,cle1,cle2,type,Revenu_Cost):
+        print(line)
+        print(cle1)
+        print(cle2)
+        for cle in cle1:
+            if cle in Revenu_Cost.DicoFormes.keys():
+                Revenu_Cost.DicoFormes[cle][cle2] = int(line)
+            else:
+                Revenu_Cost.DicoFormesMarche[cle][cle2] = int(line)    
+    
 def SendTables():
     ui.Projet.FondsPropres = [0]*(ui.tableWidget_2.columnCount()-2)
     ui.Projet.CCA = [0]*(ui.tableWidget_2.columnCount()-2)
@@ -1237,6 +1196,28 @@ def Sum_cells(table,firstRow,firstCol,secondRow,secondCol):
             except (ValueError,AttributeError) as e:
                 pass
     return sum
+    
+def unifyQuestions(listeQuestions):
+    l = []
+    for i in listeQuestions:
+        if len(i)>1:
+            if checkquestion(i[1],l) == False:
+                l.append([[i[0]],i[1]])
+            else:
+                l[wildIndex(i[1],l)][0].append(i[0])
+    return l 
+
+def wildIndex(element,list,index=1):
+    for i in list:
+        if element == i[index]:
+            return list.index(i)
+            
+def checkquestion(question,list):
+    indic = False
+    for i in list:
+        if i[1] == question:
+            indic = True
+    return indic
 
 #########################3ème Page####################       
 app = QApplication(sys.argv)
