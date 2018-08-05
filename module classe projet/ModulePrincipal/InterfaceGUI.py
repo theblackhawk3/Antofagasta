@@ -924,8 +924,10 @@ class Ui_Form_4(object):
             self.verticalLayout_2.addStretch(1)
             for revenu in activite.getlistRev():
                 revenu.Horizon = ui.Projet.Horizon
+                revenu.pasVisualisation = ui.Projet.pasVisualisation
             for cost in activite.getlistCout():
                 cost.Horizon = ui.Projet.Horizon
+                cost.pasVisualisation = ui.Projet.pasVisualisation
             # Modif Unicité Revenus
             for revenu in activite.getlistRev():
                 labelRevenu = QtWidgets.QLabel()
@@ -975,17 +977,17 @@ class Ui_Form_4(object):
                     HorizentalLayout.addWidget(lineEdit)
                     self.verticalLayout_2.addLayout(HorizentalLayout)
                     self.verticalLayout_2.addStretch(1)
-            self.button = QPushButton()
-            self.button.setText("Valider")
-            self.verticalLayout.addWidget(self.button)
-            self.verticalLayout.addStretch(1)
-            self.button.clicked.connect(self.resizeRevenuTables)
-            
-            self.button_2 = QPushButton()
-            self.button_2.setText("Valider")
-            self.button_2.clicked.connect(self.resizeCostTables)
-            self.verticalLayout_2.addWidget(self.button_2)
-            self.verticalLayout_2.addStretch(1)
+        self.button = QPushButton()
+        self.button.setText("Valider")
+        self.verticalLayout.addWidget(self.button)
+        self.verticalLayout.addStretch(1)
+        self.button.clicked.connect(self.resizeRevenuTables)
+        
+        self.button_2 = QPushButton()
+        self.button_2.setText("Valider")
+        self.button_2.clicked.connect(self.resizeCostTables)
+        self.verticalLayout_2.addWidget(self.button_2)
+        self.verticalLayout_2.addStretch(1)
             
             
  #######  

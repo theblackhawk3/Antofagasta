@@ -31,8 +31,12 @@ def excel_dfs(Dict, file_name, spaces):
         indexAct = 0
         WordRowCol[sheet] = []
         DictRecolte[sheet] = {}
+        pasActivite = 0
+        Listespaces = [0]
         for activite in Dict[sheet].keys():
-            indexAct+=max([a[1] for a in Dict[sheet][activite].values()])+3
+            Listespaces.append(max([a[1] for a in Dict[sheet][activite].values()])+3)
+        for activite in Dict[sheet].keys():
+            indexAct+=max(Listespaces)
             row = 5
             WordRowCol[sheet].append((activite,row-4,indexAct+2,fontsDict['Activite']))
             DictRecolte[sheet][activite] = {}
@@ -106,20 +110,27 @@ class Projet:
         
     def InitialiserDette(self):
         self.DetteObj = Dette()
+        
+    def distibuerPas(self):
+        for activite in self.ListeActivites:
+            for cout in activite.getlistCout():
+                cout.pasVisualisation = self.pasVisualisation
+            for revenu in activite.getlistRev():
+                revenu.pasVisualisation = self.pasVisualisation
     
     def PrepareExcelInput(self):
         for activite in self.ListeActivites:
             for key in self.DictParams.keys():
                 self.DictParams[key][activite.getNom()] = {}
             for cout in activite.getlistCout():
-                MaxCols = max([i.getTableauAffichage().shape[1] for i in cout.getListTableaux()])
+                MaxCols = max([i.getTableauAffichage().shape[1] for i in cout.getListTableaux()+cout.getListTableauxMarche()])
                 # Attention au changement du titre
                 self.DictParams['Int couts'][activite.getNom()][cout.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in cout.getListTableaux()],MaxCols) 
                 self.DictParams['Mar couts'][activite.getNom()][cout.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in cout.getListTableauxMarche()],MaxCols)
         
             
             for revenu in activite.getlistRev():
-                MaxColsRev =  max([i.getTableauAffichage().shape[1] for i in revenu.getListTableaux()])
+                MaxColsRev =  max([i.getTableauAffichage().shape[1] for i in revenu.getListTableaux()+revenu.getListTableauxMarche()])
                 self.DictParams['Int revenus'][activite.getNom()][revenu.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in revenu.getListTableaux()],MaxColsRev)
                 self.DictParams['Mar revenus'][activite.getNom()][revenu.getNom()] = ([(T.getTableauAffichage(),T.getTitre()) for T in revenu.getListTableauxMarche()],MaxColsRev)
         self.WordRowCol,self.DictRecolte = excel_dfs(self.DictParams,"Parametres.xlsx",4)
@@ -250,7 +261,7 @@ class Projet:
         ws['A1'].value= 'TFT Projet '+self.Nom
         ws['A1'].style = 'Headline 1'
         for i in range(self.Horizon):
-            ws.cell(3,i+2).value = 'A'+str(i+1)
+            ws.cell(3,i+2).value = self.pasVisualisation+str(i+1)
             ws.cell(3,i+2).style = style1
        
         PTFT = 4
@@ -275,17 +286,19 @@ class Projet:
             ws.cell(PTFT,i+2).style = style4_numbers
         PTFT += 1
         # # # # # Ammortissement
+        self.Amortissement = [0]*self.Horizon
         ws.cell(PTFT,1).value = "Amortissement"
         ws.cell(PTFT,1).style = style4
         for i in range(self.Horizon):
-            ws.cell(PTFT,i+2).value = 0
+            ws.cell(PTFT,i+2).value = self.Amortissement[i]
             ws.cell(PTFT,i+2).style = style4_numbers
         PTFT += 1
         # # # # # Variation BFR
+        self.VBFR = [0]*self.Horizon
         ws.cell(PTFT,1).value = "Variation BFR"
         ws.cell(PTFT,1).style = style4
         for i in range(self.Horizon):
-            ws.cell(PTFT,i+2).value = 0
+            ws.cell(PTFT,i+2).value = self.VBFR[i]
             ws.cell(PTFT,i+2).style = style4_numbers
         PTFT += 1
         ##### Flux Invesstissement
@@ -298,7 +311,7 @@ class Projet:
         for i in range(len(self.ListeInvest)):
             ws.cell(PTFT,1).value = self.ListeInvest[i][0]
             ws.cell(PTFT,1).style = style4
-            for j in range(1,self.Horizon):
+            for j in range(1,self.Horizon+1):
                 if j < len(self.ListeInvest[i]):
                     ws.cell(PTFT,j+1).value = self.ListeInvest[i][j]
                     ws.cell(PTFT,j+1).style = style4_numbers 
@@ -343,9 +356,13 @@ class Projet:
         # # # # Apport en CCA
         ws.cell(PTFT,1).value = "Apport en CCA"
         ws.cell(PTFT,1).style = style4
+        for i in range(len(self.CCA)):
+            l[i] = self.CCA[i]
+        self.CCA = l.copy()
         for i in range(self.Horizon):
-            ws.cell(PTFT,i+2).value = 0
+            ws.cell(PTFT,i+2).value = self.CCA[i]
             ws.cell(PTFT,i+2).style = style4_numbers
+        
         PTFT += 1
         # # # # # Remboursement de la dette (Capital)
         self.RemboursementDette = [0]*self.Horizon
@@ -360,7 +377,7 @@ class Projet:
         ws.cell(PTFT,1).value = "Remboursement CCA"
         ws.cell(PTFT,1).style = style4
         for i in range(self.Horizon):
-            ws.cell(PTFT,i+2).value = self.RemboursementDette[i]
+            ws.cell(PTFT,i+2).value = self.RemboursementCCA[i]
             ws.cell(PTFT,i+2).style = style4_numbers
         PTFT += 1
         # # # # # Distribution de dividendes
@@ -382,8 +399,9 @@ class Projet:
         ws.cell(PTFT,1).value = "Flux de trésorerie"
         ws.cell(PTFT,1).style = style2
         self.FluxTresorerie = [0]*self.Horizon
+        Investissements = [sum(item) for item in zip(*[i[1:] for i in self.ListeInvest])]
         for i in range(self.Horizon):
-            self.FluxTresorerie[i] = self.RAI[i] + self.FondsPropres[i] + self.Dette[i] -self.Impots[i] - self.Interets[i] - self.RemboursementDette[i]
+            self.FluxTresorerie[i] = self.RAI[i]-self.Impots[i]+self.Amortissements[i]+self.VBFR[i]-Investissements[i]+self.FondsPropres[i]+self.Dette[i]+self.CCA[i]-self.RemboursementDette[i]-self.RemboursementCCA[i]-self.RemboursementDividendes[i]
             ws.cell(PTFT,i+2).value = self.FluxTresorerie[i]
             ws.cell(PTFT,i+2).style = style2_numbers
         PTFT += 1
@@ -476,7 +494,7 @@ class Projet:
             ws.cell(4,i+2).style = style2
         Horizon = self.Horizon
         for i in range(Horizon):
-            ws.cell(3,i+2).value = 'A'+str(i+1)
+            ws.cell(3,i+2).value = self.pasVisualisation+str(i+1)
             ws.cell(3,i+2).style = style1 
         ####Section Produits d'exploitation
         PCPC = 5
@@ -644,8 +662,8 @@ class TableauSaisie:
         self.Taille = Taille # [Indice Ligne , Indice Colonne]
         self.TableauAffichage = pd.DataFrame(np.zeros((Taille[0],Taille[1])))
         self.TableauDonnees = np.zeros((Taille[0],Taille[1]))
-        self.TableauAffichage.columns = [self.IntituleColonne+'='+str(i) for i in range(Taille[1])]
-        self.TableauAffichage.index = [self.IntituleLigne+'='+str(i) for i in range(Taille[0])]
+        self.TableauAffichage.columns = [self.IntituleColonne+' '+str(i+1) for i in range(Taille[1])]
+        self.TableauAffichage.index = [self.IntituleLigne+' '+str(i+1) for i in range(Taille[0])]
     
     #Setters
     def setTitre(self,Titre):
@@ -661,8 +679,8 @@ class TableauSaisie:
     def setTableauDonnees(self,TableauDonnees):
         self.TableauDonnees = TableauDonnees
         self.TableauAffichage = pd.DataFrame(self.TableauDonnees)
-        self.TableauAffichage.columns = [self.IntituleColonne+'='+str(i) for i in range(self.Taille[1])]
-        self.TableauAffichage.index = [self.IntituleLigne+'='+str(i) for i in range(self.Taille[0])]
+        self.TableauAffichage.columns = [self.IntituleColonne+' '+str(i+1) for i in range(self.Taille[1])]
+        self.TableauAffichage.index = [self.IntituleLigne+' '+str(i+1) for i in range(self.Taille[0])]
     
     #Getters
     def getTitre(self):
@@ -709,11 +727,11 @@ class Activite:
         print("Identification des Couts")
         wb = load_workbook('References.xlsx')
         ws = wb['Ref couts']
-        for col in ws.iter_cols(min_row=2,min_col=4, max_col=90, max_row=2):
+        for col in ws.iter_cols(min_row=2,min_col=4, max_col=ws.max_column, max_row=2):
             for cell in col:
                 if (self.nom == cell.value):
                     coltosearch = cell.col_idx
-        for row in ws.iter_rows(min_row=3,min_col=coltosearch, max_col=coltosearch, max_row=52):
+        for row in ws.iter_rows(min_row=3,min_col=coltosearch, max_col=coltosearch, max_row=ws.max_row):
             for cell in row:
                 if (cell.value == "x"):
                     C = Cout(ws['C'+str(cell.row)].value)
@@ -725,11 +743,11 @@ class Activite:
         print("Identification des Revenus")
         wb = load_workbook('References.xlsx')
         ws = wb['Ref revenus']
-        for col in ws.iter_cols(min_row=2,min_col=3, max_col=89, max_row=2):
+        for col in ws.iter_cols(min_row=2,min_col=3, max_col=ws.max_column, max_row=2):
             for cell in col:
                 if (self.nom == cell.value):
                     coltosearch = cell.col_idx
-        for row in ws.iter_rows(min_row=3,min_col=coltosearch, max_col=coltosearch, max_row=71):
+        for row in ws.iter_rows(min_row=3,min_col=coltosearch, max_col=coltosearch, max_row=ws.max_row):
             for cell in row:
                 if (cell.value == "x"):
                     R = Revenu(ws['A'+str(cell.row)].value)
@@ -866,7 +884,7 @@ class Cout:
         Formulaire = []
         for j in Titres:
             self.DicoFormes[j] ={}
-            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=23, max_row=2):
+            for col in wsTableau.iter_cols(min_row=2,min_col=2, max_col=ws.max_column, max_row=2):
                 for cell in col:
                     if (cell.value == j):
                         Questions = [j]
@@ -874,20 +892,24 @@ class Cout:
                         self.DicoFormes[j]['Taille0'] = Taille[0]
                         self.DicoFormes[j]['Taille1'] = Taille[1]
                         IntituleLigne = wsTableau[cell.column+'3'].value
-                        self.DicoFormes[j]['IntituleLigne'] = IntituleLigne
+                        self.DicoFormes[j]['IntituleLigne'] = str(IntituleLigne)
                         TypeCol = wsTableau[cell.column+'4'].value
-                        self.DicoFormes[j]['TypeCol'] = TypeCol
+                        self.DicoFormes[j]['TypeCol'] = str(TypeCol)
                         IntituleColonne = wsTableau[cell.column+'5'].value
-                        self.DicoFormes[j]['IntituleColonne'] = IntituleColonne
+                        self.DicoFormes[j]['IntituleColonne'] = str(IntituleColonne)
                         #Un Test sur le type d'indices ligne pour le tableau
                         if IntituleLigne == 'Horizon':
                             Taille[0] = self.Horizon
+                            self.DicoFormes[j]['IntituleLigne'] = self.pasVisualisation
                             self.DicoFormes[j]['Taille0'] = self.Horizon
+                        elif type(IntituleLigne) == int:
+                            Taille[0] = IntituleLigne
+                            self.DicoFormes[j]['Taille0'] = IntituleLigne
                         else:
                             Questions.append(["Taille0","Veuillez saisir votre "+IntituleLigne])
-                        if TypeCol == 1:
-                            Taille[1] = 1
-                            self.DicoFormes[j]['Taille1'] = 1
+                        if type(TypeCol) == int:
+                            Taille[1] = TypeCol
+                            self.DicoFormes[j]['Taille1'] = TypeCol
                         else:
                             Questions.append(["Taille1","Veuillez saisir votre "+str(TypeCol)])
                         Formulaire.append(Questions)
@@ -957,20 +979,24 @@ class Cout:
                         self.DicoFormesMarche[j]['Taille0'] = Taille[0]
                         self.DicoFormesMarche[j]['Taille1'] = Taille[1]
                         IntituleLigne = wsTableau[cell.column+'3'].value
-                        self.DicoFormesMarche[j]['IntituleLigne'] = IntituleLigne
+                        self.DicoFormesMarche[j]['IntituleLigne'] = str(IntituleLigne)
                         TypeCol = wsTableau[cell.column+'4'].value
-                        self.DicoFormesMarche[j]['TypeCol'] = TypeCol
+                        self.DicoFormesMarche[j]['TypeCol'] = str(TypeCol)
                         IntituleColonne = wsTableau[cell.column+'5'].value
-                        self.DicoFormesMarche[j]['IntituleColonne'] = IntituleColonne
+                        self.DicoFormesMarche[j]['IntituleColonne'] = str(IntituleColonne)
                         #Un Test sur le type d'indices ligne pour le tableau
                         if IntituleLigne == 'Horizon':
                             Taille[0] = self.Horizon
+                            self.DicoFormesMarche[j]['IntituleLigne'] = self.pasVisualisation
                             self.DicoFormesMarche[j]['Taille0'] = self.Horizon
+                        elif type(IntituleLigne) == int:
+                            Taille[0] = IntituleLigne
+                            self.DicoFormesMarche[j]['Taille0'] = IntituleLigne
                         else:
                             Questions.append(["Taille0","Veuillez saisir votre "+IntituleLigne])
-                        if TypeCol == 1:
-                            Taille[1] = 1
-                            self.DicoFormesMarche[j]['Taille1'] = 1
+                        if type(TypeCol) == int:
+                            Taille[1] = TypeCol
+                            self.DicoFormesMarche[j]['Taille1'] = TypeCol
                         else:
                             Questions.append(["Taille1","Veuillez saisir votre "+str(TypeCol)])
                         Formulaire.append(Questions)
@@ -1102,20 +1128,24 @@ class Revenu:
                         self.DicoFormes[j]['Taille0'] = Taille[0]
                         self.DicoFormes[j]['Taille1'] = Taille[1]
                         IntituleLigne = wsTableau[cell.column+'3'].value
-                        self.DicoFormes[j]['IntituleLigne'] = IntituleLigne
+                        self.DicoFormes[j]['IntituleLigne'] = str(IntituleLigne)
                         TypeCol = wsTableau[cell.column+'4'].value
-                        self.DicoFormes[j]['TypeCol'] = TypeCol
+                        self.DicoFormes[j]['TypeCol'] = str(TypeCol)
                         IntituleColonne = wsTableau[cell.column+'5'].value
-                        self.DicoFormes[j]['IntituleColonne'] = IntituleColonne
+                        self.DicoFormes[j]['IntituleColonne'] = str(IntituleColonne)
                         #Un Test sur le type d'indices ligne pour le tableau
                         if IntituleLigne == 'Horizon':
                             Taille[0] = self.Horizon
+                            self.DicoFormes[j]['IntituleLigne'] = self.pasVisualisation
                             self.DicoFormes[j]['Taille0'] = self.Horizon
+                        elif type(IntituleLigne) == int:
+                            Taille[0] = IntituleLigne
+                            self.DicoFormes[j]['Taille0'] = IntituleLigne
                         else:
                             Questions.append(["Taille0","Veuillez saisir votre "+IntituleLigne])
-                        if TypeCol == 1:
-                            Taille[1] = 1
-                            self.DicoFormes[j]['Taille1'] = 1
+                        if type(TypeCol) == int:
+                            Taille[1] = TypeCol
+                            self.DicoFormes[j]['Taille1'] = TypeCol
                         else:
                             Questions.append(["Taille1","Veuillez saisir votre "+str(TypeCol)])
                         Formulaire.append(Questions)
@@ -1185,20 +1215,24 @@ class Revenu:
                         self.DicoFormesMarche[j]['Taille0'] = Taille[0]
                         self.DicoFormesMarche[j]['Taille1'] = Taille[1]
                         IntituleLigne = wsTableau[cell.column+'3'].value
-                        self.DicoFormesMarche[j]['IntituleLigne'] = IntituleLigne
+                        self.DicoFormesMarche[j]['IntituleLigne'] = str(IntituleLigne)
                         TypeCol = wsTableau[cell.column+'4'].value
-                        self.DicoFormesMarche[j]['TypeCol'] = TypeCol
+                        self.DicoFormesMarche[j]['TypeCol'] = str(TypeCol)
                         IntituleColonne = wsTableau[cell.column+'5'].value
-                        self.DicoFormesMarche[j]['IntituleColonne'] = IntituleColonne
+                        self.DicoFormesMarche[j]['IntituleColonne'] = str(IntituleColonne)
                         #Un Test sur le type d'indices ligne pour le tableau
                         if IntituleLigne == 'Horizon':
                             Taille[0] = self.Horizon
+                            self.DicoFormesMarche[j]['IntituleLigne'] = self.pasVisualisation
                             self.DicoFormesMarche[j]['Taille0'] = self.Horizon
+                        elif type(IntituleLigne) == int:
+                            Taille[0] = IntituleLigne
+                            self.DicoFormesMarche[j]['Taille0'] = IntituleLigne
                         else:
                             Questions.append(["Taille0","Veuillez saisir votre "+IntituleLigne])
-                        if TypeCol == 1:
-                            Taille[1] = 1
-                            self.DicoFormesMarche[j]['Taille1'] = 1
+                        if type(TypeCol) == int:
+                            Taille[1] = TypeCol
+                            self.DicoFormesMarche[j]['Taille1'] = TypeCol
                         else:
                             Questions.append(["Taille1","Veuillez saisir votre "+str(TypeCol)])
                         Formulaire.append(Questions)
@@ -1447,14 +1481,16 @@ def IS(p):
     
     t = 0
     if per == 'A'      : t = 1   #renvoie nbr de cases à regrouper     
-    if per == 'S'  : t = 2        
+    if per == 'S'  : t = 2       
     if per == 'T' : t = 4
     if per == 'M'     : t = 12
     
     l = [0]*int(roundN(((len(r))/t)))
     for i in range(0,len(l)) :
-        for j in range(0,t) :
-            l[i] += r[i*t+j]
+        for j in range(i*t,min((i+1)*t,len(r))):
+            l[i] += r[j]
+        # for j in range(0,t) :
+            # l[i] += r[i*t+j]
     
     s = l.copy()
     for i in range(0,len(l)):
@@ -1480,8 +1516,11 @@ def IS(p):
                 
                     
             s[i] = c*f(c)
-                        
-    return(s)
+                    
+    impots = [0]*len(p.RAI)
+    for i in range(0,len(s)):
+        impots[min(((i+1)*t)-1,len(impots)-1)] = s[i]
+    return(impots)
 
     
 ##### Fin Modif 1 #######
@@ -1492,7 +1531,7 @@ def IS_ajustealaperiodicite(p,per):
     
     t = 0
     if per == 'Annuelle'      : return IS       
-    if per == 'Semestrielle'  : t = 2        #renvoie la période à laquelle il faut remettre l'IS
+    if per == 'Semestrielle'  : t = 2       #renvoie la période à laquelle il faut remettre l'IS
     if per == 'Trimestrielle' : t = 4
     if per == 'Mensuelle'     : t = 12
     
