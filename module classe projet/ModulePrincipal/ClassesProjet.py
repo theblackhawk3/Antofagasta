@@ -1138,6 +1138,10 @@ class Revenu:
                             Taille[0] = self.Horizon
                             self.DicoFormes[j]['IntituleLigne'] = self.pasVisualisation
                             self.DicoFormes[j]['Taille0'] = self.Horizon
+                        elif IntituleLigne == 'Affluence':
+                            Taille[0] = convertir_affluence(self.Horizon,self.pasVisualisation)
+                            self.DicoFormes[j]['IntituleLigne'] = 'A'
+                            self.DicoFormes[j]['Taille0'] = Taille[0]
                         elif type(IntituleLigne) == int:
                             Taille[0] = IntituleLigne
                             self.DicoFormes[j]['Taille0'] = IntituleLigne
@@ -1567,3 +1571,12 @@ def roundN(p):
         return int(p) +1
     else:
         return p
+        
+def convertir_affluence(horizon,pas):
+    t=0
+    if pas == "M":  t=12
+    if pas == "T":  t=4
+    if pas == "S":  t=2
+    if pas == "A":  t=1
+    return roundN(horizon/t)
+        

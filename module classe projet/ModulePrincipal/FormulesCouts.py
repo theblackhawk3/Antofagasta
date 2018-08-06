@@ -61,29 +61,7 @@ def CalculerCout(cout):
         PrixConso = DictTableaux['Nombre Consommable santé']
         NbrConso = DictTableaux['Prix consommable santé']
         cout.resultat = list(np.sum((PrixConso*NbrConso),axis=1))
-    elif cout.getNom() == "Cout d'achat de contenu artistique":
-        pass
-    elif cout.getNom() == "Cout des consommables liés à l'activité sportive":
-        pass
-    elif cout.getNom() == "Couts des consomables liés à l'élevage de bétail":
-        pass
-    elif cout.getNom() == "Cout des consommables liés à la culture de plantes":
-        pass
-    elif cout.getNom() == "Cout des consommables liés à l'elevage de poisson":
-        pass
-    elif cout.getNom() == "Couts des repas offerts  au client":
-        pass
-    elif cout.getNom() == "Couts des consomables liés à la culture de plantes aquatiques":
-        pass
-    elif cout.getNom() == "Couts des consomables liés à la pêche":
-        pass
-    elif cout.getNom() == "Couts des consomables de bien être":
-        pass
-    elif cout.getNom() == "Couts des consommables de nettoyage":
-        pass
-    elif cout.getNom() == "Consommables d'entretiens de bateaux ":
-        pass
-    elif cout.getNom() == "Couts liés à l'activité sur internet":
-        pass
-    elif cout.getNom() == "Couts des consommables de destruction de batiments":
-        pass
+    elif cout.getNom() == "Cout MP Restauration":
+        QteMP = DictTableaux['Quantité achetée par type de MP']
+        PrixMP = DictTableaux['Prix / Type MP']
+        cout.resultat = list(np.sum(np.multiply(QteMP,PrixMP),axis = 1))
