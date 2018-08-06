@@ -13,10 +13,6 @@ def CalculerCout(cout):
     elif cout.getNom() == "Couts de nettoyage et gardiennage":
         pass
         
-    elif cout.getNom() == "Cout MP utilisée":
-        PM = np.dot(DictTableaux['Prix / Type MP'],DictTableaux['Nomenclature Produits'])
-        cout.resultat =  list(np.sum(np.multiply(PM, DictTableaux['Fabrication par type de produit ']),axis = 1))
-        
     elif cout.getNom() == "Cout MP obsolète":
         pass
     elif cout.getNom() == "Cout de marchandise achetée ":
@@ -61,7 +57,8 @@ def CalculerCout(cout):
         PrixConso = DictTableaux['Nombre Consommable santé']
         NbrConso = DictTableaux['Prix consommable santé']
         cout.resultat = list(np.sum((PrixConso*NbrConso),axis=1))
-    elif cout.getNom() == "Cout MP Restauration":
+        
+    elif cout.getNom() == "Cout MP Restauration" or cout.getNom() == "Cout MP utilisée ":
         QteMP = DictTableaux['Quantité achetée par type de MP']
         PrixMP = DictTableaux['Prix / Type MP']
         cout.resultat = list(np.sum(np.multiply(QteMP,PrixMP),axis = 1))

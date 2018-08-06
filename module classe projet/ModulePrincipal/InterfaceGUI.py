@@ -1087,7 +1087,7 @@ def SendTables():
         for j in range(2,int(ui.lineEdit.text())+2):
             ui2.tableWidget.setItem(i,j-1,QTableWidgetItem(ui.tableWidget.item(i,j).text()))
             ui.Projet.ListeInvest[i-2].append(int(ui.tableWidget.item(i,j).text()))
-
+    
     # print(np.array(L))
     
     ui2.tableWidget.setItem(ui.tableWidget.rowCount()-1,0,QTableWidgetItem("Total"))

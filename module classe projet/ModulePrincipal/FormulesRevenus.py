@@ -90,3 +90,9 @@ def CalculerRevenu(revenu):
                         MatriceIntermediaire[i][j] += PrixBien[j]*PrcAvances
         
         revenu.resultat = np.sum(MatriceIntermediaire,axis=1)
+        
+    elif revenu.getNom() == "Produits fabriqués vendus":
+        Ventes = DictTableaux['Ventes en unités de produit']
+        PrixVentes = DictTableaux['Prix de vente par produit']
+        revenu.resultat = list(np.sum(PrixVentes*Ventes,axis=1))
+        

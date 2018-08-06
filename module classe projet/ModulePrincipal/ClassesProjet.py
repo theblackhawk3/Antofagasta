@@ -400,11 +400,18 @@ class Projet:
         ws.cell(PTFT,1).style = style2
         self.FluxTresorerie = [0]*self.Horizon
         Investissements = [sum(item) for item in zip(*[i[1:] for i in self.ListeInvest])]
-        for i in range(self.Horizon):
-            self.FluxTresorerie[i] = self.RAI[i]-self.Impots[i]+self.Amortissements[i]+self.VBFR[i]-Investissements[i]+self.FondsPropres[i]+self.Dette[i]+self.CCA[i]-self.RemboursementDette[i]-self.RemboursementCCA[i]-self.RemboursementDividendes[i]
-            ws.cell(PTFT,i+2).value = self.FluxTresorerie[i]
-            ws.cell(PTFT,i+2).style = style2_numbers
-        PTFT += 1
+        if len(Investissements) !=0:
+            for i in range(self.Horizon):
+                self.FluxTresorerie[i] = self.RAI[i]-self.Impots[i]+self.Amortissements[i]+self.VBFR[i]-Investissements[i]+self.FondsPropres[i]+self.Dette[i]+self.CCA[i]-self.RemboursementDette[i]-self.RemboursementCCA[i]-self.RemboursementDividendes[i]
+                ws.cell(PTFT,i+2).value = self.FluxTresorerie[i]
+                ws.cell(PTFT,i+2).style = style2_numbers
+            PTFT += 1
+        else:
+            for i in range(self.Horizon):
+                self.FluxTresorerie[i] = self.RAI[i]-self.Impots[i]+self.Amortissements[i]+self.VBFR[i]+self.FondsPropres[i]+self.Dette[i]+self.CCA[i]-self.RemboursementDette[i]-self.RemboursementCCA[i]-self.RemboursementDividendes[i]
+                ws.cell(PTFT,i+2).value = self.FluxTresorerie[i]
+                ws.cell(PTFT,i+2).style = style2_numbers
+            PTFT += 1
         # # # # # Trésorerie accumulée
         ws.cell(PTFT,1).value = "Trésorerie Accumulée"
         ws.cell(PTFT,1).style = style2
