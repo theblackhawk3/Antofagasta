@@ -87,7 +87,7 @@ def CalculerRevenu(revenu):
                         MatriceIntermediaire[i][j] += PrixBien[j]*PrcAvances
                         MatriceIntermediaire[EclatementTitres - 1][j] += PrixBien[j]*(1-PrcAvances)
                     else:
-                        MatriceIntermediaire[i][j] += PrixBien[j]*PrcAvances
+                        MatriceIntermediaire[i][j] += PrixBien[j]
         
         revenu.resultat = np.sum(MatriceIntermediaire,axis=1)
         

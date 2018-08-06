@@ -669,8 +669,14 @@ class TableauSaisie:
         self.Taille = Taille # [Indice Ligne , Indice Colonne]
         self.TableauAffichage = pd.DataFrame(np.zeros((Taille[0],Taille[1])))
         self.TableauDonnees = np.zeros((Taille[0],Taille[1]))
-        self.TableauAffichage.columns = [self.IntituleColonne+' '+str(i+1) for i in range(Taille[1])]
-        self.TableauAffichage.index = [self.IntituleLigne+' '+str(i+1) for i in range(Taille[0])]
+        if self.Taille[1] == 1:
+            self.TableauAffichage.columns = [self.IntituleColonne]
+        else:
+            self.TableauAffichage.columns = [self.IntituleColonne+' '+str(i+1) for i in range(Taille[1])]
+        if self.Taille[0] == 1:
+            self.TableauAffichage.index = [self.IntituleLigne]
+        else:
+            self.TableauAffichage.index = [self.IntituleLigne+' '+str(i+1) for i in range(Taille[0])]
     
     #Setters
     def setTitre(self,Titre):
@@ -686,8 +692,16 @@ class TableauSaisie:
     def setTableauDonnees(self,TableauDonnees):
         self.TableauDonnees = TableauDonnees
         self.TableauAffichage = pd.DataFrame(self.TableauDonnees)
-        self.TableauAffichage.columns = [self.IntituleColonne+' '+str(i+1) for i in range(self.Taille[1])]
-        self.TableauAffichage.index = [self.IntituleLigne+' '+str(i+1) for i in range(self.Taille[0])]
+        # self.TableauAffichage.columns = [self.IntituleColonne+' '+str(i+1) for i in range(self.Taille[1])]
+        # self.TableauAffichage.index = [self.IntituleLigne+' '+str(i+1) for i in range(self.Taille[0])]
+        if self.Taille[1] == 1:
+            self.TableauAffichage.columns = [self.IntituleColonne]
+        else:
+            self.TableauAffichage.columns = [self.IntituleColonne+' '+str(i+1) for i in range(self.Taille[1])]
+        if self.Taille[0] == 1:
+            self.TableauAffichage.index = [self.IntituleLigne]
+        else:
+            self.TableauAffichage.index = [self.IntituleLigne+' '+str(i+1) for i in range(self.Taille[0])]
     
     #Getters
     def getTitre(self):
