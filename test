@@ -1,0 +1,85 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'C:\Users\CDL\PycharmProjects\untitled\GraphicalInterface\Load.ui'
+#
+# Created by: PyQt5 UI code generator 5.9.2
+#
+# WARNING! All changes made in this file will be lost!
+import sys
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+class Ui_Form(object):
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.resize(562, 390)
+        self.horizontalSlider = QtWidgets.QSlider(Form)
+        self.horizontalSlider.setGeometry(QtCore.QRect(370, 310, 160, 22))
+        self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontalSlider.setObjectName("horizontalSlider")
+        self.horizontalSlider_2 = QtWidgets.QSlider(Form)
+        self.horizontalSlider_2.setGeometry(QtCore.QRect(50, 310, 160, 22))
+        self.horizontalSlider_2.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontalSlider_2.setObjectName("horizontalSlider_2")
+        self.label = QtWidgets.QLabel(Form)
+        self.label.setGeometry(QtCore.QRect(110, 340, 47, 13))
+        self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(Form)
+        self.label_2.setGeometry(QtCore.QRect(440, 340, 47, 13))
+        self.label_2.setObjectName("label_2")
+        self.graphicsView = QtWidgets.QGraphicsView(Form)
+        self.graphicsView.setGeometry(QtCore.QRect(20, 10, 521, 281))
+        self.graphicsView.setObjectName("graphicsView")
+        self.label_3 = QtWidgets.QLabel(Form)
+        self.label_3.setGeometry(QtCore.QRect(113, 360, 47, 13))
+        self.label_3.setObjectName("label_3")
+        self.label_4 = QtWidgets.QLabel(Form)
+        self.label_4.setGeometry(QtCore.QRect(443, 360, 47, 13))
+        self.label_4.setObjectName("label_4")
+        self.pushButton = QtWidgets.QPushButton(Form)
+        self.pushButton.setGeometry(QtCore.QRect(260, 350, 75, 23))
+        self.pushButton.setObjectName("pushButton")
+        self.Form = Form
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
+
+    def retranslateUi(self, Form):
+        _translate = QtCore.QCoreApplication.translate
+        Form.setWindowTitle(_translate("Form", "Form"))
+        self.label.setText(_translate("Form", "TextLabel"))
+        self.label_2.setText(_translate("Form", "TextLabel"))
+        self.label_3.setText(_translate("Form", "Seuil Bas"))
+        self.label_4.setText(_translate("Form", "Seuil Haut"))
+        self.pushButton.setText(_translate("Form", "Load Image"))
+        self.initUI()
+
+    def openFileNameDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self.Form, "QFileDialog.getOpenFileName()", "",
+                                                  "All Files (*);;Python Files (*.py)", options=options)
+
+        for i in range(len(fileName)):
+            if fileName[i] == "/":
+                fileName[i] = "\\"
+        if fileName:
+            print(fileName)
+
+    def initUI(self):
+        self.label.setText("0")
+        self.label_2.setText("255")
+        self.pushButton.clicked.connect(self.on_load_click)
+        self.openFileNameDialog()
+    def load_image(self,path):
+        pass
+    def on_load_click(self):
+        self.openFileNameDialog()
+
+app = QApplication(sys.argv)
+window = QDialog()
+ui = Ui_Form()
+ui.setupUi(window)
+window.show()
+sys.exit(app.exec_())
